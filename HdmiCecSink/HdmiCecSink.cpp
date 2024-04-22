@@ -750,7 +750,14 @@ namespace WPEFramework
            logicalAddress = 0xFF;
            // load persistence setting
            loadSettings();
+       }
 
+       HdmiCecSink::~HdmiCecSink()
+       {
+       }
+       const std::string HdmiCecSink::Initialize(PluginHost::IShell * /* service */)
+       {
+           HdmiCecSink::_instance = this;
            int err;
            dsHdmiInGetNumberOfInputsParam_t hdmiInput;
            InitializeIARM();
