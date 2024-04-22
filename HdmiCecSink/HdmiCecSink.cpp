@@ -175,7 +175,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
 
@@ -746,6 +746,12 @@ namespace WPEFramework
 		   Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
+           // load persistence setting
+           loadSettings();
+
+           int err;
+           dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+           InitializeIARM();
            m_sendKeyEventThreadExit = false;
            m_sendKeyEventThread = std::thread(threadSendKeyEvent);
 
@@ -753,15 +759,8 @@ namespace WPEFramework
            m_semSignaltoArcRoutingThread.acquire();
            m_arcRoutingThread = std::thread(threadArcRouting);
 
-
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
-           // load persistence setting
-           loadSettings();
-
-           int err;
-           dsHdmiInGetNumberOfInputsParam_t hdmiInput;
-           InitializeIARM();
             // get power state:
             uint32_t res = Core::ERROR_GENERAL;
             PowerState pwrStateCur = WPEFramework::Exchange::IPowerManager::POWER_STATE_UNKNOWN;
@@ -813,7 +812,7 @@ namespace WPEFramework
                }
             }
             getCecVersion();
-	    getHdmiArcPortID();
+	   LOGINFO(" HdmiCecSink plugin Initialize completed \n");
            return (std::string());
 
        }
@@ -3339,7 +3338,7 @@ namespace WPEFramework
                 return;
 
 		LOGINFO("Running threadArcRouting");
-
+	        _instance->getHdmiArcPortID();
 
         	while(1)
         	{
