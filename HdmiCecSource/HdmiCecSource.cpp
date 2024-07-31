@@ -1118,9 +1118,18 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init("HdmiCecSource");
                 }
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::init %s", e.what());
+                }
                 catch (const std::exception& e)
                 {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                    LOGWARN("CEC exception caught from CECEnable");
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::init");
                 }
             }
             libcecInitStatus++;
@@ -1265,9 +1274,18 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::getInstance().term() %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::getInstance().term()%s", e.what());
+                }
                 catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::getInstance().term()");
                 }
             }
 
