@@ -405,8 +405,6 @@ namespace WPEFramework
            Register(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
            Register(HDMICEC2_METHOD_SEND_KEY_PRESS,&HdmiCec_2::sendRemoteKeyPressWrapper,this);
            Register("getDeviceList", &HdmiCec_2::getDeviceList, this);
-           _engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-           _communicatorClient = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine));
        }
 
        HdmiCec_2::~HdmiCec_2()
@@ -415,7 +413,7 @@ namespace WPEFramework
            LOGWARN("dtor");
        }
  
-       const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
+       const string HdmiCec_2::Initialize(PluginHost::IShell* service)
        {
            LOGWARN("Initlaizing CEC_2");
            string msg;
@@ -448,7 +446,7 @@ namespace WPEFramework
 
                //CEC plugin functionalities will only work if CECmgr is available. If plugin Initialize failure upper layer will call dtor directly.
                InitializeIARM();
-               InitializePowerManager();
+               InitializePowerManager(service);
 
                // load persistence setting
                loadSettings();
@@ -520,17 +518,6 @@ namespace WPEFramework
            {
                _powerManagerPlugin.Reset();
            }
-           LOGINFO("Disconnect from the COM-RPC socket\n");
-           // Disconnect from the COM-RPC socket
-           if (_communicatorClient.IsValid())
-           {
-               _communicatorClient->Close(RPC::CommunicationTimeOut);
-               _communicatorClient.Release();
-           }
-           if(_engine.IsValid())
-           {
-               _engine.Release();
-           }
            _registeredEventHandlers = false;
            if(true == getEnabled())
            {
@@ -554,12 +541,11 @@ namespace WPEFramework
             }
         }
 
-        void HdmiCec_2::InitializePowerManager()
+        void HdmiCec_2::InitializePowerManager(PluginHost::IShell* service)
         {
             LOGINFO("Connect the COM-RPC socket\n");
-            _powerManagerPlugin = PowerManagerInterfaceBuilder(_communicatorClient, _T("org.rdk.PowerManager"))
-                                    .withTimeout(3000)
-                                    .withVersion(~0)
+            _powerManagerPlugin = PowerManagerInterfaceBuilder(_T("org.rdk.PowerManager"))
+                                    .withIShell(service)
                                     .createInterface();
             registerEventHandlers();
         }
