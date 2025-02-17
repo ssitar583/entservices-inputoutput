@@ -14,3 +14,15 @@ All notable changes to this RDK Service will be documented in this file.
 
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
+## [1.1.0] - 2025-02-07 
+### Added
+
+Added support for handling the videoStreamInfoUpdate for composite Input.
+
+## [1.0.0] - 2025-02-17
+### Added
+- Add CHANGELOG
+
+### Change
+- Reset API version to 1.0.0
+- Change README to inform how to update changelog and API version
