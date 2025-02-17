@@ -85,6 +85,7 @@ private:
     uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
     uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setMixerLevels(const JsonObject& parameters, JsonObject& response);
+    uint32_t getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response);
     //End methods
 
     JsonArray getInputDevices(int iType);
@@ -106,7 +107,7 @@ private:
     void AVInputStatusChange( int port , bool isPresented, int type);
     static void dsAVStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-    void AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
+    void AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution,int type);
     static void dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void AVInputALLMChange( int port , bool allmMode);

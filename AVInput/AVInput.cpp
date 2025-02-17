@@ -31,8 +31,8 @@
 #include <algorithm>
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 6
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_MINOR 7
+#define API_VERSION_NUMBER_PATCH 1
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -48,6 +48,7 @@
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
+#define AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION "getHdmiVersion"
 #define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
 #define AVINPUT_METHOD_STOP_INPUT "stopInput"
@@ -167,6 +168,10 @@ void AVInput::InitializeIARM()
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
             dsAVStatusEventHandler));
+	IARM_CHECK(IARM_Bus_RegisterEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,
+            dsAVVideoModeEventHandler));
     	IARM_CHECK(IARM_Bus_RegisterEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,
@@ -204,6 +209,9 @@ void AVInput::DeinitializeIARM()
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsAVStatusEventHandler));
     	IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE, dsAVVideoModeEventHandler));
+	IARM_CHECK(IARM_Bus_RemoveEventHandler(
+            IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsAviContentTypeEventHandler));
     }
 }
@@ -223,6 +231,7 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_MIXER_LEVELS), &AVInput::setMixerLevels, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION), &AVInput::getHdmiVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
@@ -748,17 +757,18 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
  * @param[in] port HDMI In port id.
  * @param[dsVideoPortResolution_t] video resolution data
  */
-void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution)
+void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution, int type)
 {
     LOGWARN("AVInputVideoModeUpdate [%d]", port);
 
     JsonObject params;
     params["id"] = port;
     std::stringstream locator;
-    locator << "hdmiin://localhost/deviceid/" << port;
-    params["locator"] = locator.str();
+     if(type == HDMI){
 
-    switch(resolution.pixelResolution) {
+       locator << "hdmiin://localhost/deviceid/" << port;
+       switch(resolution.pixelResolution) {
+
         case dsVIDEO_PIXELRES_720x480:
             params["width"] = 720;
             params["height"] = 480;
@@ -773,8 +783,8 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             params["width"] = 1280;
             params["height"] = 720;
             break;
-
-        case dsVIDEO_PIXELRES_1920x1080:
+	       
+	case dsVIDEO_PIXELRES_1920x1080:
             params["width"] = 1920;
             params["height"] = 1080;
             break;
@@ -793,10 +803,31 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             params["width"] = 1920;
             params["height"] = 1080;
             break;
+        }
+       params["progressive"] = (!resolution.interlaced);
+    }
+    else if(type == COMPOSITE)
+    {
+       locator << "cvbsin://localhost/deviceid/" << port;
+       switch(resolution.pixelResolution) {
+        case dsVIDEO_PIXELRES_720x480:
+            params["width"] = 720;
+            params["height"] = 480;
+            break;
+        case dsVIDEO_PIXELRES_720x576:
+            params["width"] = 720;
+            params["height"] = 576;
+            break;
+       default:
+            params["width"] = 720;
+            params["height"] = 576;
+            break;
+       }
+
+       params["progressive"] = false;
     }
 
-    params["progressive"] = (!resolution.interlaced);
-
+    params["locator"] = locator.str();
     switch(resolution.frameRate) {
         case dsVIDEO_FRAMERATE_24:
             params["frameRateN"] = 24000;
@@ -849,16 +880,17 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
 
 void AVInput::dsAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
-	if(!AVInput::_instance)
-		return;
+        if(!AVInput::_instance)
+                return;
 
-	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
-	{
-		IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-		int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
-		int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
-		LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
-AVInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
+        if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
+        {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
+                int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
+
+		AVInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
 	}
 }
 
@@ -941,7 +973,17 @@ void AVInput::dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventI
         resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
         resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
         LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
-        AVInput::_instance->AVInputVideoModeUpdate(hdmi_in_port, resolution);
+        AVInput::_instance->AVInputVideoModeUpdate(hdmi_in_port, resolution,HDMI);
+    }
+    else if (IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE == eventId) {
+        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+        int composite_in_port = eventData->data.composite_in_video_mode.port;
+        dsVideoPortResolution_t resolution = {};
+        resolution.pixelResolution =  eventData->data.composite_in_video_mode.resolution.pixelResolution;
+        resolution.interlaced =  eventData->data.composite_in_video_mode.resolution.interlaced;
+        resolution.frameRate =  eventData->data.composite_in_video_mode.resolution.frameRate;
+        LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", composite_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+        AVInput::_instance->AVInputVideoModeUpdate(composite_in_port, resolution,COMPOSITE);
     }
 }
 
@@ -1360,6 +1402,53 @@ uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject
     else {
         returnResponse(true);
     }
+}
+
+uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response)
+{
+        LOGINFOMETHOD();
+        returnIfParamNotFound(parameters, "portId");
+        string sPortId = parameters["portId"].String();
+        int portId = 0;
+
+        try {
+                portId = stoi(sPortId);
+        }catch (const std::exception& err) {
+                LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+                returnResponse(false);
+        }
+
+        dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_14;
+
+        try {
+                device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
+                LOGWARN("AVInput::getHdmiVersion Hdmi Version:%d", hdmiCapVersion);
+         }
+                catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+                returnResponse(false);
+         }
+
+
+        switch ((int)hdmiCapVersion){
+        case HDMI_COMPATIBILITY_VERSION_14:
+                response["HdmiCapabilityVersion"] = "1.4";
+                break;
+        case HDMI_COMPATIBILITY_VERSION_20:
+                response["HdmiCapabilityVersion"] = "2.0";
+                break;
+        case HDMI_COMPATIBILITY_VERSION_21:
+                response["HdmiCapabilityVersion"] = "2.1";
+                break;
+        }
+
+
+        if(hdmiCapVersion == HDMI_COMPATIBILITY_VERSION_MAX)
+        {
+                returnResponse(false);
+        }else{
+                returnResponse(true);
+        }
 }
 
 int AVInput::setEdidVersion(int iPort, int iEdidVer)
