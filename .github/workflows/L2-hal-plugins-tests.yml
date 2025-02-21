@@ -19,6 +19,7 @@ on:
       - HdcpProfile/**
       - DeviceDiagnostics/**
    
+
 jobs:
   L2_HAL_Plugins_using_Mock:
     runs-on: ubuntu-latest
