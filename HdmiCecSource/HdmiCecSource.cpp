@@ -404,8 +404,6 @@ namespace WPEFramework
        , _registeredEventHandlers(false)
        {
            LOGWARN("ctor");
-           _engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-           _communicatorClient = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine));
        }
 
        HdmiCecSource::~HdmiCecSource()
@@ -413,7 +411,7 @@ namespace WPEFramework
            LOGWARN("dtor");
        }
 
-       const string HdmiCecSource::Initialize(PluginHost::IShell* /* service */)
+       const string HdmiCecSource::Initialize(PluginHost::IShell *service)
        {
            LOGWARN("Initlaizing CEC_2");
            uint32_t res = Core::ERROR_GENERAL;
@@ -456,7 +454,7 @@ namespace WPEFramework
 
                //CEC plugin functionalities will only work if CECmgr is available. If plugin Initialize failure upper layer will call dtor directly.
                InitializeIARM();
-               InitializePowerManager();
+               InitializePowerManager(service);
 
                // load persistence setting
                loadSettings();
@@ -538,17 +536,6 @@ namespace WPEFramework
            if(_powerManagerPlugin)
            {
                _powerManagerPlugin.Reset();
-           }
-           LOGINFO("Disconnect from the COM-RPC socket\n");
-           // Disconnect from the COM-RPC socket
-           if (_communicatorClient.IsValid())
-           {
-               _communicatorClient->Close(RPC::CommunicationTimeOut);
-               _communicatorClient.Release();
-           }
-           if(_engine.IsValid())
-           {
-               _engine.Release();
            }
            _registeredEventHandlers = false;
 
@@ -729,12 +716,11 @@ namespace WPEFramework
 	    return ret;
        }
 
-        void HdmiCecSource::InitializePowerManager()
+        void HdmiCecSource::InitializePowerManager(PluginHost::IShell *service)
         {
             LOGINFO("Connect the COM-RPC socket\n");
-            _powerManagerPlugin = PowerManagerInterfaceBuilder(_communicatorClient, _T("org.rdk.PowerManager"))
-                                    .withTimeout(3000)
-                                    .withVersion(~0)
+            _powerManagerPlugin = PowerManagerInterfaceBuilder(_T("org.rdk.PowerManager"))
+                                    .withIShell(service)
                                     .createInterface();
             registerEventHandlers();
         }

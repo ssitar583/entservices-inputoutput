@@ -294,12 +294,10 @@ namespace WPEFramework {
 		
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
-            Core::ProxyType<RPC::InvokeServerType<1, 0, 4> > _engine;
-            Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
             PowerManagerInterfaceRef _powerManagerPlugin;
             Core::Sink<PowerManagerNotification> _pwrMgrNotification;
             bool _registeredEventHandlers;
-            void InitializePowerManager();
+            void InitializePowerManagerPluginHost::IShell *service
             const void InitializeIARM();
             void DeinitializeIARM();
             static void cecMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
