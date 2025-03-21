@@ -573,6 +573,8 @@ private:
             void sendKeyReleaseEvent(const int logicalAddress);
 	    void sendUserControlPressed(const int logicalAddress, int keyCode);
             void sendUserControlReleased(const int logicalAddress);
+            void onPowerModeChanged(const PowerState &currentState, const PowerState &newState);
+            void registerEventHandlers();
             void sendGiveAudioStatusMsg();
             void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
