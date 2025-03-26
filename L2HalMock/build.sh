@@ -144,6 +144,7 @@ echo -e "${GREEN}========================================iarm_event_Sender======
 echo -e "${GREEN}========================================Build iarmmgr===============================================${NC}"
 # Build iarmmgr
 cd $WORKSPACE/deps/rdk/iarmmgrs
+patch -s -p1 < $SCRIPTS_DIR/patches/rdkservices/iarmmgrs/ds.patch
 rm build.sh
 cp $SCRIPTS_DIR/patches/rdkservices/iarmmgrs/build.sh $WORKSPACE/deps/rdk/iarmmgrs
 (cd $WORKSPACE/deps/rdk/iarmmgrs && ./build.sh)
