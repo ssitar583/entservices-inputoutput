@@ -46,7 +46,6 @@ do
             -DCMAKE_MODULE_PATH="$WORKSPACE/install/usr/include/WPEFramework/Modules" \
             -DPLUGIN_HDMICECSOURCE=ON \
             -DPLUGIN_HDMICECSINK=ON \
-            -DPLUGIN_HDCPPROFILE=ON \
             -DUSE_THUNDER_R4=ON \
             -DCOMCAST_CONFIG=OFF \
             -DCEC_INCLUDE_DIRS="$SCRIPTS_DIR/workspace/deps/rdk/hdmicec/ccec/include" \

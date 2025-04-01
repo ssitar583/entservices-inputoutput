@@ -16,16 +16,6 @@ if grep -q "HdmiCecSink" <<< "$SelectedPlugins"; then
   HdmiCecSink="ON"
 fi
 
-if grep -q "FrontPanel" <<< "$SelectedPlugins"; then
-  echo "Found: $SelectedPlugins"
-  FrontPanel="ON"
-fi
-
-if grep -q "HdcpProfile" <<< "$SelectedPlugins"; then
-  echo "Found: $SelectedPlugins"
-  HdcpProfile="ON"
-fi
-
 # Define ANSI color codes for green
 GREEN='\033[0;32m'     # Green text
 NC='\033[0m'           # No color (resets to default)
@@ -173,8 +163,6 @@ cd $WORKSPACE/
 mkdir -p $WORKSPACE/install/etc/WPEFramework/plugins
 cp $SCRIPTS_DIR/patches/rdkservices/files/HdmiCecSource.json $WORKSPACE/install/etc/WPEFramework/plugins/
 cp $SCRIPTS_DIR/patches/rdkservices/files/HdmiCecSink.json $WORKSPACE/install/etc/WPEFramework/plugins/
-cp $SCRIPTS_DIR/patches/rdkservices/files/FrontPanel.json $WORKSPACE/install/etc/WPEFramework/plugins/
-cp $SCRIPTS_DIR/patches/rdkservices/files/HdcpProfile.json $WORKSPACE/install/etc/WPEFramework/plugins/
 
 #Code Coverage patch
 # cd $RDK_DIR
@@ -211,8 +199,6 @@ cmake -S . -B build \
 -DUSE_THUNDER_R4=ON \
 -DPLUGIN_HDMICECSOURCE=$HdmiCecSource \
 -DPLUGIN_HDMICECSINK=$HdmiCecSink \
--DPLUGIN_FRONTPANEL=$FrontPanel \
--DPLUGIN_HDCPPROFILE=$HdcpProfile \
 -DCOMCAST_CONFIG=OFF \
 -DCEC_INCLUDE_DIRS="$SCRIPTS_DIR/workspace/deps/rdk/hdmicec/ccec/include" \
 -DOSAL_INCLUDE_DIRS="$SCRIPTS_DIR/workspace/deps/rdk/hdmicec/osal/include" \
