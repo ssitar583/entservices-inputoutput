@@ -22,13 +22,25 @@
 #include "Module.h"
 #include <interfaces/Ids.h>
 #include <interfaces/IHdcpProfile.h>
+#include <interfaces/IPowerManager.h>
+#include<interfaces/IConfiguration.h>
+
+#include <com/com.h>
+#include <core/core.h>
+#include <mutex>
+#include <vector>
+
+#include "libIBus.h"
+
+#include "PowerManagerInterface.h"
 
 namespace WPEFramework
 {
     namespace Plugin
     {
         
-        class HdcpProfileImplementation : public Exchange::IHdcpProfile
+        class HdcpProfileImplementation : public Exchange::IHdcpProfile, public Exchange::IConfiguration
+        // , public Exchange::IConfiguration
         {
         public:
             // We do not allow this plugin to be copied !!
@@ -40,9 +52,11 @@ namespace WPEFramework
             // We do not allow this plugin to be copied !!
             HdcpProfileImplementation(const HdcpProfileImplementation &) = delete;
             HdcpProfileImplementation &operator=(const HdcpProfileImplementation &) = delete;
-
+           
+            
             BEGIN_INTERFACE_MAP(HdcpProfileImplementation)
             INTERFACE_ENTRY(Exchange::IHdcpProfile)
+            INTERFACE_ENTRY(Exchange::IConfiguration)
             END_INTERFACE_MAP
 
         public:
@@ -53,7 +67,7 @@ namespace WPEFramework
             class EXTERNAL Job : public Core::IDispatch
             {
             protected:
-                Job(HdcpProfileImplementation *HdcpProfileImplementation, Event event, JsonValue &params)
+                Job(HdcpProfileImplementation *HdcpProfileImplementation, Event event, HDCPStatus &params)
                     : _hdcpProfileImplementation(HdcpProfileImplementation), _event(event), _params(params)
                 {
                     if (_hdcpProfileImplementation != nullptr)
@@ -75,7 +89,7 @@ namespace WPEFramework
                 }
 
             public:
-                static Core::ProxyType<Core::IDispatch> Create(HdcpProfileImplementation *hdcpProfileImplementation, Event event, JsonValue params)
+                static Core::ProxyType<Core::IDispatch> Create(HdcpProfileImplementation *hdcpProfileImplementation, Event event, HDCPStatus params)
                 {
 #ifndef USE_THUNDER_R4
                     return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
@@ -83,7 +97,6 @@ namespace WPEFramework
                     return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
 #endif
                 }
-
                 virtual void Dispatch()
                 {
                     _hdcpProfileImplementation->Dispatch(_event, _params);
@@ -92,24 +105,40 @@ namespace WPEFramework
             private:
                 HdcpProfileImplementation *_hdcpProfileImplementation;
                 const Event _event;
-                const JsonObject _params;
+                HDCPStatus _params;
             };
+            
 
         public:
             Core::hresult Register(Exchange::IHdcpProfile::INotification *notification) override;
             Core::hresult Unregister(Exchange::IHdcpProfile::INotification *notification) override;
 
-            Core::hresult GetHDCPStatus(HDCPStatus& hdcpstatus,Result &result) override;
-			Core::hresult GetSettopHDCPSupport(SupportedHdcpInfo& supportedHdcpInfo,Result &result) override;
+            Core::hresult GetHDCPStatus(HDCPStatus& hdcpstatus,bool& success) override;
+            Core::hresult GetSettopHDCPSupport(string& supportedHDCPVersion,bool& isHDCPSupported,bool& success) override;
+            bool GetHDCPStatusInternal(HDCPStatus& hdcpstatus);
+            void InitializePowerManager(PluginHost::IShell *service);
+            void InitializeIARM();
+            void DeinitializeIARM();
+            static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            void onHdmiOutputHotPlug(int connectStatus);
+            void onHdmiOutputHDCPStatusEvent(int);
+            void logHdcpStatus (const char *trigger, HDCPStatus& status);   
+            void onHdcpProfileDisplayConnectionChanged();  
+            static PowerManagerInterfaceRef _powerManagerPlugin;      
+            uint32_t Configure(PluginHost::IShell* service) override;
 
         private:
+            mutable Core::CriticalSection _adminLock;
+            PluginHost::IShell *mShell;
             std::list<Exchange::IHdcpProfile::INotification *> _hdcpProfileNotification; // List of registered notifications
-
-            void dispatchEvent(Event, const JsonObject &params);
-            void Dispatch(Event event, const JsonObject params);
+            PluginHost::IShell* _service;
+            void dispatchEvent(Event, const HDCPStatus &params);
+            void Dispatch(Event event, const HDCPStatus &params);
+            
 
         public:
             static HdcpProfileImplementation *_instance;
         };
+
     } // namespace Plugin
 } // namespace WPEFramework

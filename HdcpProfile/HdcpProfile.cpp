@@ -17,10 +17,7 @@
 * limitations under the License.
 **/
 
-
-
 #include "HdcpProfile.h"
-#include <interfaces/IConfiguration.h>
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -61,7 +58,7 @@ namespace WPEFramework
             SYSLOG(Logging::Shutdown, (string(_T("HdcpProfile Destructor"))));
         }
     
-		const string HdcpProfile::Initialize(PluginHost::IShell *service)
+	const string HdcpProfile::Initialize(PluginHost::IShell *service)
         {
             string message = "";
 
@@ -75,18 +72,26 @@ namespace WPEFramework
             _service = service;
             _service->AddRef();
             _service->Register(&_hdcpProfileNotification);
-            _hdcpProfile = _service->Root<Exchange::IHdcpProfile>(_connectionId, 5000, _T("HdcpProfile"));
+            _hdcpProfile = _service->Root<Exchange::IHdcpProfile>(_connectionId, 5000, _T("HdcpProfileImplementation"));
 
             if (nullptr != _hdcpProfile)
             {
-                auto configConnection = _hdcpProfile->QueryInterface<Exchange::IConfiguration>();
-                if (configConnection != nullptr)
+                configure = _hdcpProfile->QueryInterface<Exchange::IConfiguration>();
+                if (configure != nullptr)
                 {
-                    configConnection->Configure(service);
-                    configConnection->Release();
+                    uint32_t result = configure->Configure(_service);
+                    if(result != Core::ERROR_NONE)
+                    {
+                        message = _T("HdcpProfile could not be configured");
+                    }
+                }
+                else
+                {
+                    message = _T("HdcpProfile implementation did not provide a configuration interface");
                 }
                 // Register for notifications
                 _hdcpProfile->Register(&_hdcpProfileNotification);
+                
                 // Invoking Plugin API register to wpeframework
                 Exchange::JHdcpProfile::Register(*this, _hdcpProfile);
             }
@@ -98,6 +103,7 @@ namespace WPEFramework
 
             if (0 != message.length())
             {
+                printf("HdcpProfile::Initialize: Failed to initialise HdcpProfile plugin");
                 Deinitialize(service);
             }
 
@@ -107,7 +113,7 @@ namespace WPEFramework
         void HdcpProfile::Deinitialize(PluginHost::IShell *service)
         {
             ASSERT(_service == service);
-
+            printf("HdcpProfile::Deinitialize: service = %p", service);
             SYSLOG(Logging::Shutdown, (string(_T("HdcpProfile::Deinitialize"))));
 
             // Make sure the Activated and Deactivated are no longer called before we start cleaning up..
@@ -117,6 +123,7 @@ namespace WPEFramework
             }
             if (nullptr != _hdcpProfile)
             {
+                
                 _hdcpProfile->Unregister(&_hdcpProfileNotification);
                 Exchange::JHdcpProfile::Unregister(*this);
 
@@ -151,7 +158,7 @@ namespace WPEFramework
             }
             SYSLOG(Logging::Shutdown, (string(_T("HdcpProfile de-initialised"))));
         }
-		string HdcpProfile::Information() const
+	string HdcpProfile::Information() const
         {
             return ("This HdcpProfile Plugin facilitates to persist event data for monitoring applications");
         }

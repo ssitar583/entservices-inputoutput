@@ -20,13 +20,13 @@
 #pragma once
 
 #include "Module.h"
-#include <interfaces/IHdcpProfile.h>
-#include <interfaces/json/JHdcpProfile.h>
+#include <interfaces/IHdcpProfile.h>  // Ensure this includes the definition of HDCPStatus
 #include <interfaces/json/JsonData_HdcpProfile.h>
-#include <interfaces/IHdcpProfile.h> // Ensure this includes the definition of HDCPStatus
+#include <interfaces/json/JHdcpProfile.h>
+#include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
-#include "UtilsJsonRpc.h" // for JsonValue, JsonObject
 #include "tracing/Logging.h"
+
 
 
 namespace WPEFramework {
@@ -39,45 +39,45 @@ namespace WPEFramework {
                 class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
                 {
 					private:
-                        Notification() = delete;
-                        Notification(const Notification&) = delete;
-                        Notification& operator=(const Notification&) = delete;
+			            Notification() = delete;
+			            Notification(const Notification&) = delete;
+			            Notification& operator=(const Notification&) = delete;
 						
-				public:
-					explicit Notification(HdcpProfile *parent)
-						: _parent(*parent)
-					{
-						ASSERT(parent != nullptr);
-					}
-
-					virtual ~Notification()
-					{
-					}
+					public:
+						explicit Notification(HdcpProfile *parent)
+								: _parent(*parent)
+						{
+							ASSERT(parent != nullptr);
+						}
+		
+						virtual ~Notification()
+						{
+						}
 					
-					BEGIN_INTERFACE_MAP(Notification)
-					INTERFACE_ENTRY(Exchange::IHdcpProfile::INotification)
-					INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
-					END_INTERFACE_MAP
-					
-					void Activated(RPC::IRemoteConnection *) override
-					{
+						BEGIN_INTERFACE_MAP(Notification)
+						INTERFACE_ENTRY(Exchange::IHdcpProfile::INotification)
+						INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+						END_INTERFACE_MAP
+							
+						void Activated(RPC::IRemoteConnection *) override
+						{
 						LOGINFO("HdcpProfile Notification Activated");
-					}
-
-					void Deactivated(RPC::IRemoteConnection *connection) override
-					{
-						LOGINFO("HdcpProfile Notification Deactivated");
-						_parent.Deactivated(connection);
-					}
+						}
+		
+						void Deactivated(RPC::IRemoteConnection *connection) override
+						{
+							LOGINFO("HdcpProfile Notification Deactivated");
+							_parent.Deactivated(connection);
+						}
 					
-					void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus) override
-					{
-						LOGINFO("OnDisplayConnectionChanged: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s", hdcpstatus.isConnected, hdcpstatus.isHDCPCompliant, hdcpstatus.isHDCPEnabled, hdcpstatus.hdcpReason, hdcpstatus.supportedHDCPVersion.c_str(), hdcpstatus.receiverHDCPVersion.c_str(), hdcpstatus.currentHDCPVersion.c_str());
-						Exchange::JHdcpProfile::Event::OnDisplayConnectionChanged(_parent, hdcpstatus);
-					}
-
-					private:
-						HdcpProfile &_parent;
+						void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus) override
+						{
+							LOGINFO("OnDisplayConnectionChanged: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s", hdcpstatus.isConnected, hdcpstatus.isHDCPCompliant, hdcpstatus.isHDCPEnabled, hdcpstatus.hdcpReason, hdcpstatus.supportedHDCPVersion.c_str(), hdcpstatus.receiverHDCPVersion.c_str(), hdcpstatus.currentHDCPVersion.c_str());
+							Exchange::JHdcpProfile::Event::OnDisplayConnectionChanged(_parent, hdcpstatus);
+						}
+		
+						private:
+							HdcpProfile &_parent;
 				};
 				
 			public:
@@ -86,7 +86,7 @@ namespace WPEFramework {
 				
 				HdcpProfile();
 				virtual ~HdcpProfile();
-
+			
 				BEGIN_INTERFACE_MAP(HdcpProfile)
 				INTERFACE_ENTRY(PluginHost::IPlugin)
 				INTERFACE_ENTRY(PluginHost::IDispatcher)
@@ -94,19 +94,20 @@ namespace WPEFramework {
 				END_INTERFACE_MAP
 				
 				//  IPlugin methods
-                // -------------------------------------------------------------------------------------------------------
-                const string Initialize(PluginHost::IShell* service) override;
-                void Deinitialize(PluginHost::IShell* service) override;
-                string Information() const override;
+				// -------------------------------------------------------------------------------------------------------
+				const string Initialize(PluginHost::IShell* service) override;
+				void Deinitialize(PluginHost::IShell* service) override;
+				string Information() const override;
 				
-			private:
-                void Deactivated(RPC::IRemoteConnection* connection);
+				private:
+                	void Deactivated(RPC::IRemoteConnection* connection);
 			
-			private:
-				PluginHost::IShell *_service{};
-				uint32_t _connectionId{};
-				Exchange::IHdcpProfile *_hdcpProfile{};
-				Core::Sink<Notification> _hdcpProfileNotification;
+				private:
+					PluginHost::IShell *_service{};
+					uint32_t _connectionId{};
+					Exchange::IHdcpProfile *_hdcpProfile{};
+					Core::Sink<Notification> _hdcpProfileNotification;
+					Exchange::IConfiguration* configure;
         };
 
     } // namespace Plugin
