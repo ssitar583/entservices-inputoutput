@@ -27,7 +27,6 @@
 #define MAX_PRIM_VOL_LEVEL 100
 #define DEFAULT_INPUT_VOL_LEVEL 100
 
-//demo
 namespace WPEFramework {
 namespace Plugin {
 
