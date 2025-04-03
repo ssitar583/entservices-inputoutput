@@ -214,6 +214,8 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
                       -include ${PWD}/entservices-testframework/Tests/mocks/pkg.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/maintenanceMGR.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/secure_wrappermock.h \
+                      -include ${PWD}/entservices-testframework/Tests/mocks/wpa_ctrl.h \
+                      -include ${PWD}/entservices-testframework/Tests/mocks/HdmiCec.h \
                       --coverage -Wall -Werror -Wno-error=format \
                       -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog \
                       -DENABLE_TELEMETRY_LOGGING -DUSE_IARMBUS \
@@ -225,7 +227,9 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
   -DRDK_SERVICES_COVERITY=ON \
   -DRDK_SERVICES_L1_TEST=ON \
   -DDS_FOUND=ON \
-  -DPLUGIN_AVINPUT=ON \
+  -DPLUGIN_HDMICECSOURCE=ON \
+  -DPLUGIN_HDMICECSINK=ON \
+  -DPLUGIN_HDCPPROFILE=ON \
 
 
 cmake --build build/entservices-inputoutput --target install
