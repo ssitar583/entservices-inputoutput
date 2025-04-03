@@ -205,6 +205,9 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
                       -I ${PWD}/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal \
                       -I ${PWD}/entservices-testframework/Tests/headers/ccec/drivers \
                       -I ${PWD}/entservices-testframework/Tests/headers/network \
+                      -I ${PWD}/entservices-testframework/Tests \
+                      -I ${PWD}/Thunder/Source \
+                      -I ${PWD}/Thunder/Source/core \         
                       -include ${PWD}/entservices-testframework/Tests/mocks/devicesettings.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/Iarm.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/Rfc.h \
@@ -214,7 +217,6 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
                       -include ${PWD}/entservices-testframework/Tests/mocks/pkg.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/maintenanceMGR.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/secure_wrappermock.h \
-                      -include ${PWD}/entservices-testframework/Tests/mocks/wpa_ctrl.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/HdmiCec.h \
                       --coverage -Wall -Werror -Wno-error=format \
                       -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog \
