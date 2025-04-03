@@ -80,6 +80,8 @@ private:
     uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t setVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t startInput(const JsonObject& parameters, JsonObject& response);
     uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
