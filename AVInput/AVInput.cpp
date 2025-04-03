@@ -48,6 +48,8 @@
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
+#define AVINPUT_METHOD_SET_VRR_SUPPORT "setVRRSupport"
+#define AVINPUT_METHOD_GET_VRR_SUPPORT "getVRRSupport"
 #define AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION "getHdmiVersion"
 #define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
@@ -65,7 +67,6 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
-//demo
 static bool isAudioBalanceSet = false;
 static int planeType = 0;
 
@@ -232,6 +233,8 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_MIXER_LEVELS), &AVInput::setMixerLevels, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_VRR_SUPPORT), &AVInput::setVRRSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_VRR_SUPPORT), &AVInput::getVRRSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION), &AVInput::getHdmiVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
@@ -1361,6 +1364,77 @@ uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 	else
 	{
 	    returnResponse(false);
+	}
+}
+
+bool getVRRSupport(int portId,bool *vrrSupportValue)
+{
+	bool ret = true;
+		//To implement
+	return ret;
+}
+
+uint32_t AVInput::getVRRSupportWrapper(const JsonObject& parameters, JsonObject& response)
+{
+	LOGINFOMETHOD();
+	string sPortId = parameters["portId"].String();
+
+	int portId = 0;
+	bool vrrSupport = true;
+	returnIfParamNotFound(parameters, "portId");
+
+	try {
+		portId = stoi(sPortId);
+	}catch (const std::exception& err) {
+		LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		returnResponse(false);
+	}
+
+	bool result = getVRRSupport(portId, &allmSupport);
+	if(result == true)
+	{
+	     response["vrrSupport"] = vrrSupport;
+	     returnResponse(true);
+	}
+	else
+	{
+	    returnResponse(false);
+	}
+}
+
+bool setVRRSupport(int portId, bool vrrSupport)
+{
+	bool ret = true;
+	//To implement
+return ret;
+}
+
+uint32_t AVInput::setVRRSupportWrapper(const JsonObject& parameters, JsonObject& response)
+{
+	LOGINFOMETHOD();
+
+	returnIfParamNotFound(parameters, "portId");
+	returnIfParamNotFound(parameters, "vrrSupport");
+
+	int portId = 0;
+	string sPortId = parameters["portId"].String();
+	bool vrrSupport = parameters["vrrSupport"].Boolean();
+
+	try {
+		portId = stoi(sPortId);
+	}catch (const std::exception& err) {
+		LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		returnResponse(false);
+	}
+
+	bool result = setVRRSupport(portId, vrrSupport);
+	if(result == true)
+	{
+	   returnResponse(true);
+	}
+	else
+	{
+	   returnResponse(false);
 	}
 }
 
