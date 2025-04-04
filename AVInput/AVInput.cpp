@@ -1392,7 +1392,7 @@ uint32_t AVInput::getVRRSupportWrapper(const JsonObject& parameters, JsonObject&
 		returnResponse(false);
 	}
 
-	bool result = getVRRSupport(portId, &allmSupport);
+	bool result = getVRRSupport(portId, &vrrSupport);
 	if(result == true)
 	{
 	     response["vrrSupport"] = vrrSupport;
