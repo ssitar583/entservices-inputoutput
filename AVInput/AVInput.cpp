@@ -1073,13 +1073,24 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
         LOGWARN("AVInput::getGameFeatureStatusWrapper ALLM MODE:%d", allm);
         response["mode"] = allm;
     }
+    else if(strcmp (sGameFeature.c_str(), "HDMI VRR") == 0)
+    {
+        bool hdmi_vrr = getVRRStatus(portId);
+        LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", hdmi_vrr);
+	response["mode"] = hdmi_vrr;
+    }
+    else if(strcmp (sGameFeature.c_str(), "AMD FreeSync Premium") == 0)
+    {
+        bool amd_freesync_premium = getVRRStatus(portId);
+        LOGWARN("AVInput::getGameFeatureStatusWrapper AMD FreeSync Premium MODE:%d", amd_freesync_premium);
+	response["mode"] = amd_freesync_premium;
+    }
     else
     {
-        LOGWARN("AVInput::getGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM");
+	LOGWARN("AVInput::getGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM, HDMI VRR, AMD FreeSync Premium");
 	returnResponse(false);
     }
     returnResponse(true);
-}
 
 bool AVInput::getALLMStatus(int iPort)
 {
@@ -1097,6 +1108,14 @@ bool AVInput::getALLMStatus(int iPort)
     return allm;
 }
 
+bool AVInput::getVRRStatus(int iPort)
+{
+    bool vrr = true;
+    /*
+	to be implemented
+    */	
+    return vrr;
+}
 uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
@@ -1372,7 +1391,9 @@ uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 bool getVRRSupport(int portId,bool *vrrSupportValue)
 {
 	bool ret = true;
-		//To implement
+	/*
+		to be implemented
+   	*/	
 	return ret;
 }
 
@@ -1407,8 +1428,10 @@ uint32_t AVInput::getVRRSupportWrapper(const JsonObject& parameters, JsonObject&
 bool setVRRSupport(int portId, bool vrrSupport)
 {
 	bool ret = true;
-	//To implement
-return ret;
+	/*
+		to be implemented
+    	*/	
+	return ret;
 }
 
 uint32_t AVInput::setVRRSupportWrapper(const JsonObject& parameters, JsonObject& response)
