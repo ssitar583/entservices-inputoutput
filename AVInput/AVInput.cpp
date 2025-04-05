@@ -1091,6 +1091,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	returnResponse(false);
     }
     returnResponse(true);
+}
 
 bool AVInput::getALLMStatus(int iPort)
 {
