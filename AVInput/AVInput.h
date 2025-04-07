@@ -123,8 +123,8 @@ private:
     static void dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void AVInputALLMChange( int port , bool allmMode);
-    void AVInput::AVInputHDMIVRRChange( int port , bool vrr_mode);
-    void AVInput::AVInputAMDFreeSyncChange( int port , bool vrr_mode);
+    void AVInputHDMIVRRChange( int port , bool vrr_mode);
+    void AVInputAMDFreeSyncChange( int port , bool vrr_mode);
 
     static void dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
