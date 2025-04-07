@@ -210,6 +210,12 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
                       -I ${PWD}/entservices-testframework/Tests/headers/ccec/drivers \
                       -I ${PWD}/entservices-testframework/Tests/headers/network \
                       -I ${PWD}/entservices-testframework/Tests \
+                      -I ${PWD}/Thunder/Source \
+                      -I ${PWD}/Thunder/Source/core \
+                      -I/usr/include/gstreamer-1.0 \
+                      -I/usr/include/glib-2.0 \
+                      -I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
+                      -I/usr/local/include/trower-base64 \
                       -include ${PWD}/entservices-testframework/Tests/mocks/devicesettings.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/Iarm.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/Rfc.h \
