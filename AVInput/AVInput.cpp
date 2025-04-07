@@ -160,6 +160,10 @@ void AVInput::InitializeIARM()
             dsAVGameFeatureStatusEventHandler));
         IARM_CHECK(IARM_Bus_RegisterEventHandler(
             IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,
+            dsAVGameFeatureStatusEventHandler));
+        IARM_CHECK(IARM_Bus_RegisterEventHandler(
+            IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG,
             dsAVEventHandler));
         IARM_CHECK(IARM_Bus_RegisterEventHandler(
@@ -200,6 +204,9 @@ void AVInput::DeinitializeIARM()
         IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsAVGameFeatureStatusEventHandler));
+	IARM_CHECK(IARM_Bus_RemoveEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,dsAVGameFeatureStatusEventHandler));
         IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsAVEventHandler));
@@ -1007,6 +1014,28 @@ void AVInput::dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_
 
         AVInput::_instance->AVInputALLMChange(hdmi_in_port, allm_mode);
     }
+    if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS == eventId)
+    {
+	bool vrr_mode = true;
+	// Hardcoding the values
+        int hdmi_in_port = 0;
+        dsVRRType_t vrrType = VRR_HDMI_VRR;
+	//
+		if(!vrrType)
+		{
+			vrr_mode = false
+			AVInput::_instance->AVInputHDMIVRRChange(hdmi_in_port, vrr_mode);
+			AVInput::_instance->AVInputAMDFreeSyncChange(hdmi_in_port, vrr_mode);
+		}
+		elseif(vrrType == VRR_HDMI_VRR)
+		{
+		AVInput::_instance->AVInputHDMIVRRChange(hdmi_in_port, vrr_mode);		
+		}
+		elseif(vrrType == VRR_AMD_FREESYNC_PREMIUM)
+		{
+		AVInput::_instance->AVInputAMDFreeSyncChange(hdmi_in_port, vrr_mode);
+		}
+    }
 }
 
 void AVInput::AVInputALLMChange( int port , bool allm_mode)
@@ -1015,6 +1044,25 @@ void AVInput::AVInputALLMChange( int port , bool allm_mode)
     params["id"] = port;
     params["gameFeature"] = "ALLM";
     params["mode"] = allm_mode;
+
+    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+}
+void AVInput::AVInputHDMIVRRChange( int port , bool vrr_mode)
+{
+    JsonObject params;
+    params["id"] = port;
+    params["gameFeature"] = "VRR-HDMI";
+    params["mode"] = vrr_mode;
+
+    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+}
+
+void AVInput::AVInputAMDFreeSyncChange( int port , bool vrr_mode)
+{
+    JsonObject params;
+    params["id"] = port;
+    params["gameFeature"] = "VRR-FREESYNC-PREMIUM";
+    params["mode"] = vrr_mode;
 
     sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
 }
@@ -1073,15 +1121,29 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
         LOGWARN("AVInput::getGameFeatureStatusWrapper ALLM MODE:%d", allm);
         response["mode"] = allm;
     }
-    else if(strcmp (sGameFeature.c_str(), "HDMI VRR") == 0)
+    else if(strcmp (sGameFeature.c_str(), "VRR-HDMI") == 0)
     {
-        bool hdmi_vrr = getVRRStatus(portId);
+	bool hdmi_vrr = false;
+	dsVRRType_t vrrType = VRR_HDMI_VRR;
+	dsVRRType_t n_vrrType;
+	getVRRStatus(portId, &n_vrrType);
+	if(vrrType == n_vrrType)
+		hdmi_vrr = true;
+	else
+		hdmi_vrr = false;		
         LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", hdmi_vrr);
 	response["mode"] = hdmi_vrr;
     }
-    else if(strcmp (sGameFeature.c_str(), "AMD FreeSync Premium") == 0)
+    else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM") == 0)
     {
-        bool amd_freesync_premium = getVRRStatus(portId);
+	bool amd_freesync_premium = false;
+	dsVRRType_t vrrType = VRR_AMD_FREESYNC_PREMIUM;
+	dsVRRType_t n_vrrType;
+	getVRRStatus(portId, &n_vrrType);
+	if(vrrType == n_vrrType)
+		amd_freesync_premium = true;
+	else
+		amd_freesync_premium = false;
         LOGWARN("AVInput::getGameFeatureStatusWrapper AMD FreeSync Premium MODE:%d", amd_freesync_premium);
 	response["mode"] = amd_freesync_premium;
     }
@@ -1109,14 +1171,17 @@ bool AVInput::getALLMStatus(int iPort)
     return allm;
 }
 
-bool AVInput::getVRRStatus(int iPort)
+void AVInput::getVRRStatus(int iPort, VRRType_t *vrrType)
 {
-    bool vrr = true;
-    /*
-	to be implemented
+    /* to be implemented
+	
+	//device::HdmiInput::getInstance().getVRRStatus (iPort, vrrType);
+	
     */	
-    return vrr;
+	//hardcoding the vrrType to VRR_HDMI_VRR
+	*vrrType = VRR_HDMI_VRR;
 }
+
 uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
@@ -1394,6 +1459,7 @@ bool getVRRSupport(int portId,bool *vrrSupportValue)
 	bool ret = true;
 	/*
 		to be implemented
+		device::HdmiInput::getInstance().getVRRSupport (portId, vrrSupportValue);
    	*/	
 	return ret;
 }
@@ -1430,7 +1496,7 @@ bool setVRRSupport(int portId, bool vrrSupport)
 {
 	bool ret = true;
 	/*
-		to be implemented
+		device::HdmiInput::getInstance().getVRRSupport (portId, vrrSupportValue);
     	*/	
 	return ret;
 }
