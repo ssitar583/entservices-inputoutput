@@ -1019,19 +1019,19 @@ void AVInput::dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_
 	bool vrr_mode = true;
 	// Hardcoding the values
         int hdmi_in_port = 0;
-        dsVRRType_t vrrType = VRR_HDMI_VRR;
+        VRRType_t vrrType = VRR_HDMI_VRR;
 	//
 		if(!vrrType)
 		{
-			vrr_mode = false
+			vrr_mode = false;
 			AVInput::_instance->AVInputHDMIVRRChange(hdmi_in_port, vrr_mode);
 			AVInput::_instance->AVInputAMDFreeSyncChange(hdmi_in_port, vrr_mode);
 		}
-		elseif(vrrType == VRR_HDMI_VRR)
+		else if(vrrType == VRR_HDMI_VRR)
 		{
 		AVInput::_instance->AVInputHDMIVRRChange(hdmi_in_port, vrr_mode);		
 		}
-		elseif(vrrType == VRR_AMD_FREESYNC_PREMIUM)
+		else if(vrrType == VRR_AMD_FREESYNC_PREMIUM)
 		{
 		AVInput::_instance->AVInputAMDFreeSyncChange(hdmi_in_port, vrr_mode);
 		}
@@ -1124,8 +1124,8 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-HDMI") == 0)
     {
 	bool hdmi_vrr = false;
-	dsVRRType_t vrrType = VRR_HDMI_VRR;
-	dsVRRType_t n_vrrType;
+	VRRType_t vrrType = VRR_HDMI_VRR;
+	VRRType_t n_vrrType;
 	getVRRStatus(portId, &n_vrrType);
 	if(vrrType == n_vrrType)
 		hdmi_vrr = true;
@@ -1137,8 +1137,8 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM") == 0)
     {
 	bool amd_freesync_premium = false;
-	dsVRRType_t vrrType = VRR_AMD_FREESYNC_PREMIUM;
-	dsVRRType_t n_vrrType;
+	VRRType_t vrrType = VRR_AMD_FREESYNC_PREMIUM;
+	VRRType_t n_vrrType;
 	getVRRStatus(portId, &n_vrrType);
 	if(vrrType == n_vrrType)
 		amd_freesync_premium = true;
