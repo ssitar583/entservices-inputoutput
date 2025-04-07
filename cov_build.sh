@@ -131,6 +131,7 @@ mkdir -p headers/rdk/iarmbus
 mkdir -p headers/rdk/iarmmgrs-hal
 mkdir -p headers/ccec/drivers
 mkdir -p headers/network
+mkdir -p headers/proc
 echo "dir created successfully"
 echo "======================================================================================"
 
@@ -197,6 +198,9 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
   -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON \
   -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON \
   -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON \
+  -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON \
+  -DCMAKE_DISABLE_FIND_PACKAGE_CEC=ON \
   -DCMAKE_CXX_FLAGS="-DEXCEPTIONS_ENABLE=ON \
                       -I ${PWD}/entservices-testframework/Tests/headers \
                       -I ${PWD}/entservices-testframework/Tests/headers/audiocapturemgr \
