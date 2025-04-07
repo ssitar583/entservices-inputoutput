@@ -1496,7 +1496,7 @@ bool setVRRSupport(int portId, bool vrrSupport)
 {
 	bool ret = true;
 	/*
-		device::HdmiInput::getInstance().getVRRSupport (portId, vrrSupportValue);
+		device::HdmiInput::getInstance().setVRRSupport (portId, vrrSupport);
     	*/	
 	return ret;
 }
