@@ -250,6 +250,7 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
   -DRDK_SERVICES_COVERITY=ON \
   -DRDK_SERVICES_L1_TEST=ON \
   -DDS_FOUND=ON \
+  -DPLUGIN_HDMIINPUT=ON \
   -DPLUGIN_AVINPUT=ON \
   -DPLUGIN_AVOUTPUT=ON \
 
