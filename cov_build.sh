@@ -250,10 +250,7 @@ cmake -G Ninja -S entservices-inputoutput -B build/entservices-inputoutput \
   -DRDK_SERVICES_COVERITY=ON \
   -DRDK_SERVICES_L1_TEST=ON \
   -DDS_FOUND=ON \
-  -DPLUGIN_HDMICECSOURCE=ON \
-  -DPLUGIN_HDMICECSINK=ON \
-  -DPLUGIN_HDCPPROFILE=ON \
-
+  -DPLUGIN_AVINPUT=ON \
 
 cmake --build build/entservices-inputoutput --target install
 echo "======================================================================================"
