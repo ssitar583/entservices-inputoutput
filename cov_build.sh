@@ -130,6 +130,7 @@ mkdir -p headers/rdk/ds
 mkdir -p headers/rdk/iarmbus
 mkdir -p headers/rdk/iarmmgrs-hal
 mkdir -p headers/ccec/drivers
+mkdir -p headers/ccec/host
 mkdir -p headers/network
 mkdir -p headers/proc
 echo "dir created successfully"
@@ -142,6 +143,14 @@ echo "current working dir: "$(pwd)
 touch audiocapturemgr/audiocapturemgr_iarm.h
 touch ccec/drivers/CecIARMBusMgr.h
 touch ccec/FrameListener.hpp
+touch /ccec/Connection.hpp
+touch /ccec/Assert.hpp
+touch /ccec/Messages.hpp
+touch /ccec/MessageDecoder.hpp
+touch /ccec/MessageProcessor.hpp
+touch /ccec/CECFrame.hpp
+touch /ccec/MessageEncoder.hpp
+touch /ccec/host/RDK.hpp
 touch rdk/ds/audioOutputPort.hpp
 touch rdk/ds/compositeIn.hpp
 touch rdk/ds/dsDisplay.h
