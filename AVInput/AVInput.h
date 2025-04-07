@@ -47,6 +47,15 @@ public:
 
     int m_primVolume;
     int m_inputVolume; //Player Volume
+
+    typedef enum {
+        VRR_NONE,                    // No VRR support
+        VRR_HDMI_VRR,                // VRR (HDMI v2.1 flavour)
+        VRR_AMD_FREESYNC,            // AMD FreeSync
+        VRR_AMD_FREESYNC_PREMIUM,    // AMD FreeSync Premium
+        VRR_AMD_FREESYNC_PREMIUM_PRO // AMD FreeSync Premium Pro
+    }VRRType_t;
+
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
@@ -99,7 +108,7 @@ private:
     int getEdidVersion(int iPort);
     bool setVideoRectangle(int x, int y, int width, int height, int type);
     bool getALLMStatus(int iPort);
-    bool getVRRStatus(int iPort);
+    bool getVRRStatus(int iPort, VRRType_t vrrType);
 
     void AVInputHotplug(int input , int connect, int type);
     static void dsAVEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
@@ -114,6 +123,9 @@ private:
     static void dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void AVInputALLMChange( int port , bool allmMode);
+    void AVInput::AVInputHDMIVRRChange( int port , bool vrr_mode);
+    void AVInput::AVInputAMDFreeSyncChange( int port , bool vrr_mode);
+
     static void dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void hdmiInputAviContentTypeChange(int port, int content_type);
