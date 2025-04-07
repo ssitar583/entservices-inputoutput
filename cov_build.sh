@@ -133,6 +133,7 @@ mkdir -p headers/ccec/drivers
 mkdir -p headers/ccec/host
 mkdir -p headers/network
 mkdir -p headers/proc
+mkdir -p headers/websocket
 echo "dir created successfully"
 echo "======================================================================================"
 
