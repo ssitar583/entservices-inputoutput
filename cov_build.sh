@@ -151,6 +151,8 @@ touch ccec/MessageProcessor.hpp
 touch ccec/CECFrame.hpp
 touch ccec/MessageEncoder.hpp
 touch ccec/host/RDK.hpp
+touch dsRpc.h
+touch websocket/URL.h
 touch rdk/ds/audioOutputPort.hpp
 touch rdk/ds/compositeIn.hpp
 touch rdk/ds/dsDisplay.h
