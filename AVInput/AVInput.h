@@ -108,7 +108,7 @@ private:
     int getEdidVersion(int iPort);
     bool setVideoRectangle(int x, int y, int width, int height, int type);
     bool getALLMStatus(int iPort);
-    bool getVRRStatus(int iPort, VRRType_t vrrType);
+    void getVRRStatus(int iPort, VRRType_t *vrrType);
 
     void AVInputHotplug(int input , int connect, int type);
     static void dsAVEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
