@@ -1176,8 +1176,8 @@ void AVInput::getVRRStatus(int iPort, VRRType_t *vrrType)
 	//device::HdmiInput::getInstance().getVRRStatus (iPort, vrrType);
 	
     */	
-	//hardcoding the vrrType to VRR_HDMI_VRR
-	*vrrType = VRR_HDMI_VRR;
+	
+	*vrrType = new_vrrType;
 }
 
 uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1452,13 +1452,14 @@ uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 	}
 }
 
-bool getVRRSupport(int portId,bool *vrrSupportValue)
+bool AVInput::getVRRSupport(int portId,bool *vrrSupportValue)
 {
 	bool ret = true;
 	/*
 		to be implemented
 		device::HdmiInput::getInstance().getVRRSupport (portId, vrrSupportValue);
-   	*/	
+   	*/
+	*vrrSupportValue = new_vrrMode;
 	return ret;
 }
 
@@ -1490,12 +1491,18 @@ uint32_t AVInput::getVRRSupportWrapper(const JsonObject& parameters, JsonObject&
 	}
 }
 
-bool setVRRSupport(int portId, bool vrrSupport)
+bool AVInput::setVRRSupport(int portId, bool vrrSupport)
 {
 	bool ret = true;
 	/*
 		device::HdmiInput::getInstance().setVRRSupport (portId, vrrSupport);
-    	*/	
+    	*/
+       new_vrrMode = vrrSupport;
+       if(new_vrrMode)
+               new_vrrType = VRR_HDMI_VRR;
+       else
+               new_vrrType = VRR_NONE;
+
 	return ret;
 }
 
