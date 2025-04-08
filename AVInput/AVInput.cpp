@@ -250,6 +250,8 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
     m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
     m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
+    new_vrrMode = false;
+    new_vrrType = VRR_NONE;
 }
 
 void AVInput::UnregisterAll()
