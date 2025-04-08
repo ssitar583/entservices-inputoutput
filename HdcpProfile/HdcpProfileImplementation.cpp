@@ -131,7 +131,7 @@ namespace WPEFramework
 
         void HdcpProfileImplementation::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
         {
-            LOGINFO("hdcpStatus[%d]",connectStatus);
+            LOGINFO("hdcpStatus[%d]",hdcpStatus);
             onHdcpProfileDisplayConnectionChanged();
         }
 
