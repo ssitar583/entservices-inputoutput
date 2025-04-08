@@ -56,6 +56,9 @@ public:
         VRR_AMD_FREESYNC_PREMIUM_PRO // AMD FreeSync Premium Pro
     }VRRType_t;
 
+    bool new_vrrMode;
+    VRRType_t new_vrrType;
+
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
@@ -106,6 +109,8 @@ private:
     std::string getSPD(int iPort);
     int setEdidVersion(int iPort, int iEdidVer);
     int getEdidVersion(int iPort);
+    bool setVRRSupport(int portId, bool vrrSupport);
+    bool getVRRSupport(int portId, bool *vrrSupportValue);
     bool setVideoRectangle(int x, int y, int width, int height, int type);
     bool getALLMStatus(int iPort);
     void getVRRStatus(int iPort, VRRType_t *vrrType);
