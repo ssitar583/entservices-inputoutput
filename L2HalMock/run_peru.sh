@@ -1,11 +1,7 @@
 #!/bin/bash
 
 # Export your environment variables
-export GIT_USERNAME=akrish905_comcast
-export GIT_PASSWORD=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
-# Use envsubst to replace placeholders in peru.yaml
-export GERRIT_USERNAME=kdarma930
-export GERRIT_PASSWORD=5gDwn5jpTI9AKLsaZ9du6arlR1JMZqMXu26Ikynn1w
+
 
 echo "GIT_USERNAME: $GIT_USERNAME"
 echo "GIT_PASSWORD: $GIT_PASSWORD"
