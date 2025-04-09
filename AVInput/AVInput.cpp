@@ -250,8 +250,8 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
     m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
     m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
-    new_vrrMode = false;
-    new_vrrType = VRR_NONE;
+    m_vrrMode = false;
+    m_vrrType = VRR_NONE;
 }
 
 void AVInput::UnregisterAll()
@@ -1179,7 +1179,7 @@ void AVInput::getVRRStatus(int iPort, VRRType_t *vrrType)
 	
     */	
 	
-	*vrrType = new_vrrType;
+	*vrrType = m_vrrType;
 }
 
 uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1461,7 +1461,7 @@ bool AVInput::getVRRSupport(int portId,bool *vrrSupportValue)
 		to be implemented
 		device::HdmiInput::getInstance().getVRRSupport (portId, vrrSupportValue);
    	*/
-	*vrrSupportValue = new_vrrMode;
+	*vrrSupportValue = m_vrrMode;
 	return ret;
 }
 
@@ -1499,11 +1499,11 @@ bool AVInput::setVRRSupport(int portId, bool vrrSupport)
 	/*
 		device::HdmiInput::getInstance().setVRRSupport (portId, vrrSupport);
     	*/
-       new_vrrMode = vrrSupport;
-       if(new_vrrMode)
-               new_vrrType = VRR_HDMI_VRR;
+       m_vrrMode = vrrSupport;
+       if(m_vrrMode)
+               m_vrrType = VRR_HDMI_VRR;
        else
-               new_vrrType = VRR_NONE;
+               m_vrrType = VRR_NONE;
 
 	return ret;
 }
