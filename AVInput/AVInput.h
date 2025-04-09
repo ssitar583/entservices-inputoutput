@@ -56,8 +56,8 @@ public:
         VRR_AMD_FREESYNC_PREMIUM_PRO // AMD FreeSync Premium Pro
     }VRRType_t;
 
-    bool new_vrrMode;
-    VRRType_t new_vrrType;
+    bool m_vrrMode;
+    VRRType_t m_vrrType;
 
 public:
     //   IPlugin methods
