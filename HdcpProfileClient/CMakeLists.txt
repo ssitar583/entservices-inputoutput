@@ -27,7 +27,7 @@ find_package(GLIB REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_executable(${MODULE_NAME} 
+add_library(${MODULE_NAME} SHARED
         HdcpProfileClient.cpp
         Module.cpp)
 
