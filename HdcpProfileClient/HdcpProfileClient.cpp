@@ -83,7 +83,7 @@ namespace WPEFramework {
                 return "Failed to get IHdcpProfile interface";
             }
 
-            // Query the HDCP status
+
             Exchange::IHdcpProfile::HDCPStatus _hdcpstatus;
             bool _success = false;
             _remotStoreObject->GetHDCPStatus(_hdcpstatus, _success);
@@ -120,7 +120,7 @@ namespace WPEFramework {
             {
                 LOGINFO("Got IScreenCapture interface-%p", _remotStoreObject1);
             }
-            // Query the screen capture status
+           
             Exchange::IScreenCapture::Result result;
             _remotStoreObject1->UploadScreenCapture("http://server/cgi-bin/upload.cgi","12345",result);
             if (!result.success) {
@@ -129,35 +129,14 @@ namespace WPEFramework {
                 return "UploadScreenCapture failed";
             }
             LOGINFO("UploadScreenCapture: result: %d", result.success);
-            // // Query the notification interface
-            // Exchange::IHdcpProfile::INotification* notification = m_service->QueryInterfaceByCallsign<Exchange::IHdcpProfile::INotification>("org.rdk.HdcpProfile");
-            // if (notification == nullptr) {
-            //     LOGINFO("Failed to get notification interface");
-            //     _remotStoreObject->Release();
-            //     return "Failed to get notification interface";
-            // }
-            // else
-            // {
-            //     LOGINFO("Got notification interface-%p", notification);
-            // }
            
-            // Register the notification
-            _remotStoreObject->Register(&_notification);  
-
-            _remotStoreObject1->Register(&_notification1);
-
-            // //Release the notification interface
-            // notification->Release();
-
-            // // Release the remote store object
-            // _remotStoreObject->Release();
 
             // On success, return an empty string
             return string();
         }
 
 
-        //define the onDisplayConnectionChanged method
+       
         void HdcpProfileClient::OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus)
         {
             LOGINFO("OnDisplayConnectionChanged callback triggered: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s",
