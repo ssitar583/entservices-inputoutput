@@ -22,7 +22,8 @@
 #include "Module.h"
 #include <interfaces/IHdcpProfile.h>
 #include <interfaces/IScreenCapture.h>
-
+#include <interfaces/IStore2.h>
+#include <interfaces/IStoreCache.h>
 
 namespace WPEFramework {
     namespace Plugin {
