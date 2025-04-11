@@ -17,128 +17,130 @@
  * limitations under the License.
  */
 
-#pragma once
+ #pragma once
 
-#include "Module.h"
-#include <interfaces/Ids.h>
-#include <interfaces/IHdcpProfile.h>
-#include <interfaces/IPowerManager.h>
-#include<interfaces/IConfiguration.h>
-
-#include <com/com.h>
-#include <core/core.h>
-#include <mutex>
-#include <vector>
-
-#include "libIBus.h"
-
-#include "PowerManagerInterface.h"
-
-namespace WPEFramework
-{
-    namespace Plugin
-    {
-        
-        class HdcpProfileImplementation : public Exchange::IHdcpProfile, public Exchange::IConfiguration
-        // , public Exchange::IConfiguration
-        {
-        public:
-            // We do not allow this plugin to be copied !!
-            HdcpProfileImplementation();
-            ~HdcpProfileImplementation() override;
-
-            static HdcpProfileImplementation *instance(HdcpProfileImplementation *HdcpProfileImpl = nullptr);
-
-            // We do not allow this plugin to be copied !!
-            HdcpProfileImplementation(const HdcpProfileImplementation &) = delete;
-            HdcpProfileImplementation &operator=(const HdcpProfileImplementation &) = delete;
-           
+ #include "Module.h"
+ #include <interfaces/Ids.h>
+ #include <interfaces/IHdcpProfile.h>
+ #include <interfaces/IPowerManager.h>
+ #include<interfaces/IConfiguration.h>
+ 
+ #include <com/com.h>
+ #include <core/core.h>
+ #include <mutex>
+ #include <vector>
+ 
+ #include "libIBus.h"
+ 
+ #include "PowerManagerInterface.h"
+ 
+ namespace WPEFramework
+ {
+     namespace Plugin
+     {
+         
+         class HdcpProfileImplementation : public Exchange::IHdcpProfile, public Exchange::IConfiguration
+         // , public Exchange::IConfiguration
+         {
+         public:
+             // We do not allow this plugin to be copied !!
+             HdcpProfileImplementation();
+             ~HdcpProfileImplementation() override;
+ 
+             static HdcpProfileImplementation *instance(HdcpProfileImplementation *HdcpProfileImpl = nullptr);
+ 
+             // We do not allow this plugin to be copied !!
+             HdcpProfileImplementation(const HdcpProfileImplementation &) = delete;
+             HdcpProfileImplementation &operator=(const HdcpProfileImplementation &) = delete;
             
-            BEGIN_INTERFACE_MAP(HdcpProfileImplementation)
-            INTERFACE_ENTRY(Exchange::IHdcpProfile)
-            INTERFACE_ENTRY(Exchange::IConfiguration)
-            END_INTERFACE_MAP
+             
+             BEGIN_INTERFACE_MAP(HdcpProfileImplementation)
+             INTERFACE_ENTRY(Exchange::IHdcpProfile)
+             INTERFACE_ENTRY(Exchange::IConfiguration)
+             END_INTERFACE_MAP
+ 
+         public:
+             enum Event
+             {
+                 HDCPPROFILE_EVENT_DISPLAYCONNECTIONCHANGED
+             };
+             class EXTERNAL Job : public Core::IDispatch
+             {
+             protected:
+                 Job(HdcpProfileImplementation *HdcpProfileImplementation, Event event, HDCPStatus &params)
+                     : _hdcpProfileImplementation(HdcpProfileImplementation), _event(event), _params(params)
+                 {
+                     if (_hdcpProfileImplementation != nullptr)
+                     {
+                         _hdcpProfileImplementation->AddRef();
+                     }
+                 }
+ 
+             public:
+                 Job() = delete;
+                 Job(const Job &) = delete;
+                 Job &operator=(const Job &) = delete;
+                 ~Job()
+                 {
+                     if (_hdcpProfileImplementation != nullptr)
+                     {
+                         _hdcpProfileImplementation->Release();
+                     }
+                 }
+ 
+             public:
+                 static Core::ProxyType<Core::IDispatch> Create(HdcpProfileImplementation *hdcpProfileImplementation, Event event, HDCPStatus params)
+                 {
+ #ifndef USE_THUNDER_R4
+                     return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
+ #else
+                     return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
+ #endif
+                 }
+                 virtual void Dispatch()
+                 {
+                     _hdcpProfileImplementation->Dispatch(_event, _params);
+                 }
+ 
+             private:
+                 HdcpProfileImplementation *_hdcpProfileImplementation;
+                 const Event _event;
+                 HDCPStatus _params;
+             };
+             
+ 
+         public:
+             Core::hresult Register(Exchange::IHdcpProfile::INotification *notification) override;
+             Core::hresult Unregister(Exchange::IHdcpProfile::INotification *notification) override;
+ 
+             Core::hresult GetHDCPStatus(HDCPStatus& hdcpstatus,bool& success) override;
+             Core::hresult GetSettopHDCPSupport(string& supportedHDCPVersion,bool& isHDCPSupported,bool& success) override;
+             bool GetHDCPStatusInternal(HDCPStatus& hdcpstatus);
+             void InitializePowerManager(PluginHost::IShell *service);
+             void InitializeIARM();
+             void DeinitializeIARM();
+             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+             void onHdmiOutputHotPlug(int connectStatus);
+             void onHdmiOutputHDCPStatusEvent(int);
+             void logHdcpStatus (const char *trigger, HDCPStatus& status);   
+             void onHdcpProfileDisplayConnectionChanged();  
+             static PowerManagerInterfaceRef _powerManagerPlugin;      
+             uint32_t Configure(PluginHost::IShell* service) override;
+ 
+         private:
+             mutable Core::CriticalSection _adminLock;
+             PluginHost::IShell *mShell;
+             std::list<Exchange::IHdcpProfile::INotification *> _hdcpProfileNotification; // List of registered notifications
+             PluginHost::IShell* _service;
+             void dispatchEvent(Event, const HDCPStatus &params);
+             void Dispatch(Event event, const HDCPStatus &params);
+             
+ 
+         public:
+             static HdcpProfileImplementation *_instance;
 
-        public:
-            enum Event
-            {
-                HDCPPROFILE_EVENT_DISPLAYCONNECTIONCHANGED
-            };
-            class EXTERNAL Job : public Core::IDispatch
-            {
-            protected:
-                Job(HdcpProfileImplementation *HdcpProfileImplementation, Event event, HDCPStatus &params)
-                    : _hdcpProfileImplementation(HdcpProfileImplementation), _event(event), _params(params)
-                {
-                    if (_hdcpProfileImplementation != nullptr)
-                    {
-                        _hdcpProfileImplementation->AddRef();
-                    }
-                }
-
-            public:
-                Job() = delete;
-                Job(const Job &) = delete;
-                Job &operator=(const Job &) = delete;
-                ~Job()
-                {
-                    if (_hdcpProfileImplementation != nullptr)
-                    {
-                        _hdcpProfileImplementation->Release();
-                    }
-                }
-
-            public:
-                static Core::ProxyType<Core::IDispatch> Create(HdcpProfileImplementation *hdcpProfileImplementation, Event event, HDCPStatus params)
-                {
-#ifndef USE_THUNDER_R4
-                    return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
-#else
-                    return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(hdcpProfileImplementation, event, params)));
-#endif
-                }
-                virtual void Dispatch()
-                {
-                    _hdcpProfileImplementation->Dispatch(_event, _params);
-                }
-
-            private:
-                HdcpProfileImplementation *_hdcpProfileImplementation;
-                const Event _event;
-                HDCPStatus _params;
-            };
-            
-
-        public:
-            Core::hresult Register(Exchange::IHdcpProfile::INotification *notification) override;
-            Core::hresult Unregister(Exchange::IHdcpProfile::INotification *notification) override;
-
-            Core::hresult GetHDCPStatus(HDCPStatus& hdcpstatus,bool& success) override;
-            Core::hresult GetSettopHDCPSupport(string& supportedHDCPVersion,bool& isHDCPSupported,bool& success) override;
-            bool GetHDCPStatusInternal(HDCPStatus& hdcpstatus);
-            void InitializePowerManager(PluginHost::IShell *service);
-            void InitializeIARM();
-            void DeinitializeIARM();
-            static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-            void onHdmiOutputHotPlug(int connectStatus);
-            void onHdmiOutputHDCPStatusEvent(int);
-            void logHdcpStatus (const char *trigger, HDCPStatus& status);   
-            void onHdcpProfileDisplayConnectionChanged();  
-            static PowerManagerInterfaceRef _powerManagerPlugin;      
-            uint32_t Configure(PluginHost::IShell* service) override;
-
-        private:
-            mutable Core::CriticalSection _adminLock;
-            PluginHost::IShell *mShell;
-            std::list<Exchange::IHdcpProfile::INotification *> _hdcpProfileNotification; // List of registered notifications
-            PluginHost::IShell* _service;
-            void dispatchEvent(Event, const HDCPStatus &params);
-            void Dispatch(Event event, const HDCPStatus &params);
-            
-
-        public:
-            static HdcpProfileImplementation *_instance;
-        };
-
-    } // namespace Plugin
-} // namespace WPEFramework
+            //  friend class Job;
+         };
+ 
+     } // namespace Plugin
+ } // namespace WPEFramework

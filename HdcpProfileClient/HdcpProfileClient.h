@@ -21,6 +21,7 @@
 
 #include "Module.h"
 #include <interfaces/IHdcpProfile.h>
+#include <interfaces/IScreenCapture.h>
 
 
 namespace WPEFramework {
@@ -32,6 +33,66 @@ namespace WPEFramework {
             HdcpProfileClient(const HdcpProfileClient&) = delete;
             HdcpProfileClient& operator=(const HdcpProfileClient&) = delete;
 
+
+
+        private:
+            class HdcpProfileNotification : public Exchange::IHdcpProfile::INotification {
+                private:
+                HdcpProfileNotification(const HdcpProfileNotification&) = delete;
+                HdcpProfileNotification& operator=(const HdcpProfileNotification&) = delete;
+    
+            public:
+                explicit HdcpProfileNotification(HdcpProfileClient* parent)
+                    : _parent(*parent)
+                {
+                }
+                ~HdcpProfileNotification() override = default;
+    
+            public:
+                void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus) override
+                {
+                    _parent.OnDisplayConnectionChanged(hdcpstatus);
+                }
+    
+                BEGIN_INTERFACE_MAP(HdcpProfileNotification)
+                INTERFACE_ENTRY(Exchange::IHdcpProfile::INotification)
+                END_INTERFACE_MAP
+    
+            private:
+                HdcpProfileClient& _parent;
+            };
+            
+
+
+
+
+
+
+            class ScreenCaptureNotification : public Exchange::IScreenCapture::INotification {
+                private:
+                ScreenCaptureNotification(const ScreenCaptureNotification&) = delete;
+                ScreenCaptureNotification& operator=(const ScreenCaptureNotification&) = delete;
+    
+                public:
+                    explicit ScreenCaptureNotification(HdcpProfileClient* parent)
+                        : _parent(*parent)
+                    {
+                    }
+                    ~ScreenCaptureNotification() override = default;
+        
+                public:
+                    void UploadComplete(const bool& status,const std::string& message,const std::string& call_guid) override
+                    {
+                        _parent.UploadComplete(status,message,call_guid);
+                    }
+        
+                    BEGIN_INTERFACE_MAP(ScreenCaptureNotification)
+                    INTERFACE_ENTRY(Exchange::IScreenCapture::INotification)
+                    END_INTERFACE_MAP
+        
+                private:
+                    HdcpProfileClient& _parent;
+            };
            
 
         public:
@@ -40,7 +101,6 @@ namespace WPEFramework {
             virtual const string Initialize(PluginHost::IShell* shell) override ;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
-            void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus);
 
             BEGIN_INTERFACE_MAP(HdcpProfileClient)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -49,6 +109,11 @@ namespace WPEFramework {
         public:
             static HdcpProfileClient* _instance;
             PluginHost::IShell* m_service = nullptr;
+            Core::Sink<HdcpProfileNotification> _notification;
+            Core::Sink<ScreenCaptureNotification> _notification1;
+
+            void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus);
+            void UploadComplete(const bool& status,const std::string& message,const std::string& call_guid);
         };
     } // namespace Plugin
 } // namespace WPEFramework

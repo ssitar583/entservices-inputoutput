@@ -158,7 +158,7 @@ namespace WPEFramework
             }
             SYSLOG(Logging::Shutdown, (string(_T("HdcpProfile de-initialised"))));
         }
-	string HdcpProfile::Information() const
+	    string HdcpProfile::Information() const
         {
             return ("This HdcpProfile Plugin facilitates to persist event data for monitoring applications");
         }

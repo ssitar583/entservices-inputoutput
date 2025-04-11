@@ -53,9 +53,12 @@ namespace WPEFramework {
         HdcpProfileClient* HdcpProfileClient::_instance = nullptr;
 
         HdcpProfileClient::HdcpProfileClient()
+        :_notification(this),_notification1(this)
         {
             LOGINFO("ctor");
+            LOGINFO("HdcpProfileClient Instance creating");
             HdcpProfileClient::_instance = this;
+            LOGINFO("HdcpProfileClient Instance created");
             //Register("checkcomrpccomm", &HdcpProfileClient::checkcomrpccomm, this);
         }
 
@@ -66,57 +69,91 @@ namespace WPEFramework {
 
         const string HdcpProfileClient::Initialize(PluginHost::IShell* service)
         {
-	        Exchange::IHdcpProfile* _remotStoreObject = nullptr;
+            LOGINFO("Initialize");
+             Exchange::IHdcpProfile* _remotStoreObject = nullptr;
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
-
+            LOGINFO("After assert");
             m_service = service;
             m_service->AddRef();
-            _remotStoreObject = service->QueryInterfaceByCallsign<Exchange::IHdcpProfile>("org.rdk.HdcpProfile");
+            LOGINFO("After AddRef");
+            _remotStoreObject = m_service->QueryInterfaceByCallsign<Exchange::IHdcpProfile>("org.rdk.HdcpProfile");
+            if (_remotStoreObject == nullptr) {
+                LOGINFO("Failed to get IHdcpProfile interface");
+                return "Failed to get IHdcpProfile interface";
+            }
 
-            // HDCPStatus _hdcpstatus;
+            // Query the HDCP status
             Exchange::IHdcpProfile::HDCPStatus _hdcpstatus;
             bool _success = false;
             _remotStoreObject->GetHDCPStatus(_hdcpstatus, _success);
-            if (_success == false)
-            {
-                LOGERR("getHDCPStatus failed");
-                return (string());
+            if (!_success) {
+                LOGINFO("getHDCPStatus failed");
+                _remotStoreObject->Release();
+                return "getHDCPStatus failed";
             }
+
             LOGINFO("getHDCPStatus: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s",
                 _hdcpstatus.isConnected, _hdcpstatus.isHDCPCompliant, _hdcpstatus.isHDCPEnabled, _hdcpstatus.hdcpReason,
                 _hdcpstatus.supportedHDCPVersion.c_str(), _hdcpstatus.receiverHDCPVersion.c_str(), _hdcpstatus.currentHDCPVersion.c_str());
-	        ASSERT (nullptr != _remotStoreObject);  
-            string supportedHDCPVersion;
-            bool isHDCPSupported = false;
-            bool success1 = false;
-            _remotStoreObject->GetSettopHDCPSupport(supportedHDCPVersion, isHDCPSupported, success1);
-            if (success1 == false)
-            {
-                LOGERR("getSettopHDCPSupport failed");
-                return (string());
-            }
-            LOGINFO("getSettopHDCPSupport: supportedHDCPVersion: %s isHDCPSupported: %d", supportedHDCPVersion.c_str(), isHDCPSupported);
-            //subscribe the events onDisplayConnectionChanged through com-rpc
-            //register the notification
-            Exchange::IHdcpProfile::INotification* notification = service->QueryInterfaceByCallsign<Exchange::IHdcpProfile::INotification>("org.rdk.HdcpProfile");
-            if (notification == nullptr)
-            {
-                LOGERR("Failed to get notification interface");
-                return (string());
-            }
-            //register the notification
-            _remotStoreObject->Register(notification);
+            
+                string supportedHDCPVersion = "0";
+                bool isHDCPSupported = false;
+                bool success1 = false;
+                _remotStoreObject->GetSettopHDCPSupport(supportedHDCPVersion,isHDCPSupported, success1);
+                if (!success1) {
+                    LOGINFO("getSettopHDCPSupport failed");
+                    return "getSettopHDCPSupport failed";
+                }
+                LOGINFO("getSettopHDCPSupport: supportedHDCPVersion: %s isHDCPSupported: %d",
+                    supportedHDCPVersion.c_str(), isHDCPSupported);
 
 
-            // if (notification != nullptr)
-            // {
-            //     notification->Release();
-            //     notification = nullptr;
+            Exchange::IScreenCapture* _remotStoreObject1 = nullptr;
+            _remotStoreObject1 = m_service->QueryInterfaceByCallsign<Exchange::IScreenCapture>("org.rdk.ScreenCapture");
+            if (_remotStoreObject1 == nullptr) {
+                LOGINFO("Failed to get IScreenCapture interface");
+                _remotStoreObject->Release();
+                return "Failed to get IScreenCapture interface";
+            }
+            else
+            {
+                LOGINFO("Got IScreenCapture interface-%p", _remotStoreObject1);
+            }
+            // Query the screen capture status
+            Exchange::IScreenCapture::Result result;
+            _remotStoreObject1->UploadScreenCapture("http://server/cgi-bin/upload.cgi","12345",result);
+            if (!result.success) {
+                LOGINFO("UploadScreenCapture failed");
+                _remotStoreObject1->Release();
+                return "UploadScreenCapture failed";
+            }
+            LOGINFO("UploadScreenCapture: result: %d", result.success);
+            // // Query the notification interface
+            // Exchange::IHdcpProfile::INotification* notification = m_service->QueryInterfaceByCallsign<Exchange::IHdcpProfile::INotification>("org.rdk.HdcpProfile");
+            // if (notification == nullptr) {
+            //     LOGINFO("Failed to get notification interface");
+            //     _remotStoreObject->Release();
+            //     return "Failed to get notification interface";
             // }
+            // else
+            // {
+            //     LOGINFO("Got notification interface-%p", notification);
+            // }
+           
+            // Register the notification
+            _remotStoreObject->Register(&_notification);  
 
-            // On success return empty, to indicate there is no error text.
-            return (string());
+            _remotStoreObject1->Register(&_notification1);
+
+            // //Release the notification interface
+            // notification->Release();
+
+            // // Release the remote store object
+            // _remotStoreObject->Release();
+
+            // On success, return an empty string
+            return string();
         }
 
 
@@ -124,15 +161,21 @@ namespace WPEFramework {
         void HdcpProfileClient::OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus)
         {
             LOGINFO("OnDisplayConnectionChanged callback triggered: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s",
-                hdcpstatus.isConnected, hdcpstatus.isHDCPCompliant, hdcpstatus.isHDCPEnabled, hdcpstatus.hdcpReason,
-                hdcpstatus.supportedHDCPVersion.c_str(), hdcpstatus.receiverHDCPVersion.c_str(), hdcpstatus.currentHDCPVersion.c_str());
+                 hdcpstatus.isConnected, hdcpstatus.isHDCPCompliant, hdcpstatus.isHDCPEnabled, hdcpstatus.hdcpReason,
+                 hdcpstatus.supportedHDCPVersion.c_str(), hdcpstatus.receiverHDCPVersion.c_str(), hdcpstatus.currentHDCPVersion.c_str());
          }
+
+        void HdcpProfileClient::UploadComplete(const bool& status,const std::string& message,const std::string& call_guid)
+        {
+            LOGINFO("UploadComplete callback triggered: status: %d message: %s call_guid: %s", status, message.c_str(), call_guid.c_str());
+        }
 
 
         void HdcpProfileClient::Deinitialize(PluginHost::IShell*  service )
         {
+            LOGINFO("Deinitialize");
             ASSERT(service == m_service);
-
+            LOGINFO("Deinitialize: service == m_service");
             m_service->Release();
             m_service = nullptr;
         }
