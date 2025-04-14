@@ -573,7 +573,8 @@ private:
             void sendKeyReleaseEvent(const int logicalAddress);
 	    void sendUserControlPressed(const int logicalAddress, int keyCode);
             void sendUserControlReleased(const int logicalAddress);
-            void onPowerModeChanged(const PowerState &currentState, const PowerState &newState);
+			void sendGiveAudioStatusMsg();
+            void onPowerModeChanged(const PowerState currentState, const PowerState newState);
             void registerEventHandlers();
             void sendGiveAudioStatusMsg();
             void getHdmiArcPortID();
@@ -599,7 +600,7 @@ private:
                 ~PowerManagerNotification() override = default;
 
             public:
-                void OnPowerModeChanged(const PowerState &currentState, const PowerState &newState) override
+                void OnPowerModeChanged(const PowerState currentState, const PowerState newState) override
                 {
                     _parent.onPowerModeChanged(currentState, newState);
                 }
