@@ -85,7 +85,6 @@ endif()
 target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${DS_INCLUDE_DIRS})
 target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ../helpers)
-target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${CEC_INCLUDE_DIRS})
 
 
 set_source_files_properties(HdcpProfile.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
