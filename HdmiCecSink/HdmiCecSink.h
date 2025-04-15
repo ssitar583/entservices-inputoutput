@@ -574,8 +574,10 @@ private:
 	    void sendUserControlPressed(const int logicalAddress, int keyCode);
             void sendUserControlReleased(const int logicalAddress);
 			void sendGiveAudioStatusMsg();
-            void onPowerModeChanged(const PowerState &currentState, const PowerState &newState);
+            void onPowerModeChanged(const PowerState currentState, const PowerState newState);
             void registerEventHandlers();
+            void sendGiveAudioStatusMsg();
+            void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
 
@@ -598,7 +600,7 @@ private:
                 ~PowerManagerNotification() override = default;
 
             public:
-                void OnPowerModeChanged(const PowerState &currentState, const PowerState &newState) override
+                void OnPowerModeChanged(const PowerState currentState, const PowerState newState) override
                 {
                     _parent.onPowerModeChanged(currentState, newState);
                 }
@@ -669,6 +671,9 @@ private:
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
             bool m_sendKeyEventThreadRun;
+	    bool m_isAudioStatusInfoUpdated;
+	    bool m_audioStatusReceived;
+	    bool m_audioStatusTimerStarted;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
@@ -687,6 +692,7 @@ private:
 	    binary_semaphore m_semSignaltoArcRoutingThread;
             bool m_arcstarting;
             TpTimer m_arcStartStopTimer;
+	    TpTimer m_audioStatusDetectionTimer;
 
             Connection *smConnection;
 			std::vector<uint8_t> m_connectedDevices;
@@ -733,7 +739,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
-            void getHdmiArcPortID();
+	    void audioStatusTimerFunction();
 	    void getCecVersion();
         };
 	} // namespace Plugin
