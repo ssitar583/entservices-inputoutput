@@ -1136,17 +1136,41 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
         LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", hdmi_vrr);
 	response["mode"] = hdmi_vrr;
     }
+    else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC") == 0)
+    {
+	bool freesync = false;
+	VRRType_t vrrType;
+	getVRRStatus(portId, &vrrType);
+	if(vrrType == VRR-FREESYNC)
+		freesync = true;
+	else
+		freesync = false;		
+        LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC MODE:%d", freesync);
+	response["mode"] = freesync;
+    }
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM") == 0)
     {
-	bool amd_freesync_premium = false;
+	bool freesync_premium = false;
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
 	if(vrrType == VRR_AMD_FREESYNC_PREMIUM)
-		amd_freesync_premium = true;
+		freesync_premium = true;
 	else
-		amd_freesync_premium = false;
-        LOGWARN("AVInput::getGameFeatureStatusWrapper AMD FreeSync Premium MODE:%d", amd_freesync_premium);
-	response["mode"] = amd_freesync_premium;
+		freesync_premium = false;
+        LOGWARN("AVInput::getGameFeatureStatusWrapper AMD FreeSync Premium MODE:%d", freesync_premium);
+	response["mode"] = freesync_premium;
+    }
+    else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM-PRO") == 0)
+    {
+	bool freesync_premium_pro = false;
+	VRRType_t vrrType;
+	getVRRStatus(portId, &vrrType);
+	if(vrrType == VRR-FREESYNC-PREMIUM-PRO)
+		freesync_premium_pro = true;
+	else
+		freesync_premium_pro = false;		
+        LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", freesync_premium_pro);
+	response["mode"] = freesync_premium_pro;
     }
     else
     {
