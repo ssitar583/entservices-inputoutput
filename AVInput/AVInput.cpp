@@ -1139,7 +1139,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	bool freesync = false;
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
-	if(vrrType == VRR-FREESYNC)
+	if(vrrType == VRR_AMD_FREESYNC)
 		freesync = true;		
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC MODE:%d", freesync);
 	response["mode"] = freesync;
@@ -1159,7 +1159,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	bool freesync_premium_pro = false;
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
-	if(vrrType == VRR-FREESYNC-PREMIUM-PRO)
+	if(vrrType == VRR_AMD_FREESYNC_PREMIUM_PRO)
 		freesync_premium_pro = true;		
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC PREMIUM PRO MODE:%d", freesync_premium_pro);
 	response["mode"] = freesync_premium_pro;
