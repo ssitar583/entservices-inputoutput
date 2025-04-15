@@ -1130,9 +1130,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
 	if(vrrType == VRR_HDMI_VRR)
-		hdmi_vrr = true;
-	else
-		hdmi_vrr = false;		
+		hdmi_vrr = true;		
         LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", hdmi_vrr);
 	response["mode"] = hdmi_vrr;
     }
@@ -1142,9 +1140,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
 	if(vrrType == VRR-FREESYNC)
-		freesync = true;
-	else
-		freesync = false;		
+		freesync = true;		
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC MODE:%d", freesync);
 	response["mode"] = freesync;
     }
@@ -1155,9 +1151,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	getVRRStatus(portId, &vrrType);
 	if(vrrType == VRR_AMD_FREESYNC_PREMIUM)
 		freesync_premium = true;
-	else
-		freesync_premium = false;
-        LOGWARN("AVInput::getGameFeatureStatusWrapper AMD FreeSync Premium MODE:%d", freesync_premium);
+        LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC PREMIUM MODE:%d", freesync_premium);
 	response["mode"] = freesync_premium;
     }
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM-PRO") == 0)
@@ -1166,10 +1160,8 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
 	VRRType_t vrrType;
 	getVRRStatus(portId, &vrrType);
 	if(vrrType == VRR-FREESYNC-PREMIUM-PRO)
-		freesync_premium_pro = true;
-	else
-		freesync_premium_pro = false;		
-        LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", freesync_premium_pro);
+		freesync_premium_pro = true;		
+        LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC PREMIUM PRO MODE:%d", freesync_premium_pro);
 	response["mode"] = freesync_premium_pro;
     }
     else
