@@ -55,7 +55,6 @@
          : _adminLock(), mShell(nullptr)
          {
              LOGINFO("Create HdcpProfileImplementation Instance");
-            LOGINFO("sound-dbg");
              HdcpProfileImplementation::_instance = this;
          }
  
