@@ -1,4 +1,0 @@
-precondition = ["Platform"]
-callsign = "org.rdk.HdcpProfileClient"
-autostart = "@PLUGIN_HDCPPROFILECLIENT_AUTOSTART@"
-startuporder = "@PLUGIN_HDCPPROFILECLIENT_STARTUPORDER@"
