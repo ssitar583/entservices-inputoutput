@@ -75,6 +75,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -113,9 +114,7 @@ enum {
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 7
-
-using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
+#define API_VERSION_NUMBER_PATCH 10
 
 namespace WPEFramework
 {
