@@ -70,7 +70,7 @@ namespace WPEFramework {
 							_parent.Deactivated(connection);
 						}
 					
-						void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus& hdcpstatus) override
+						void OnDisplayConnectionChanged(const Exchange::IHdcpProfile::HDCPStatus hdcpstatus) override
 						{
 							LOGINFO("OnDisplayConnectionChanged: isConnected: %d isHDCPCompliant: %d isHDCPEnabled: %d hdcpReason: %d supportedHDCPVersion: %s receiverHDCPVersion: %s currentHDCPVersion: %s", hdcpstatus.isConnected, hdcpstatus.isHDCPCompliant, hdcpstatus.isHDCPEnabled, hdcpstatus.hdcpReason, hdcpstatus.supportedHDCPVersion.c_str(), hdcpstatus.receiverHDCPVersion.c_str(), hdcpstatus.currentHDCPVersion.c_str());
 							Exchange::JHdcpProfile::Event::OnDisplayConnectionChanged(_parent, hdcpstatus);
