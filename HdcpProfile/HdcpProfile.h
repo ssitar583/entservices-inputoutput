@@ -36,12 +36,12 @@ namespace WPEFramework {
 		class HdcpProfile : public PluginHost::IPlugin, public PluginHost::JSONRPC
 		{
 			private:
-                class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
-                {
+                		class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
+                		{
 					private:
-			            Notification() = delete;
-			            Notification(const Notification&) = delete;
-			            Notification& operator=(const Notification&) = delete;
+			            		Notification() = delete;
+			            		Notification(const Notification&) = delete;
+			            		Notification& operator=(const Notification&) = delete;
 						
 					public:
 						explicit Notification(HdcpProfile *parent)
