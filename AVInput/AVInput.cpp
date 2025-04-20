@@ -1073,7 +1073,8 @@ void AVInput::AVInputAMDFreeSyncChange( int port , bool vrr_mode)
 uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
-    vector<string> supportedFeatures;
+    vector<string> supportedFeatures = { "ALLM", "VRR-HDMI", "VRR-FREESYNC-PREMIUM" };
+    /*
     try
     {
         device::HdmiInput::getInstance().getSupportedGameFeatures (supportedFeatures);
@@ -1094,6 +1095,9 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
         setResponseArray(response, "supportedGameFeatures", supportedFeatures);
         returnResponse(true);
     }
+    */
+	setResponseArray(response, "supportedGameFeatures", supportedFeatures);
+        returnResponse(true);
 }
 
 uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response)
