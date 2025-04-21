@@ -137,22 +137,10 @@ namespace WPEFramework
         SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCecSink* HdmiCecSink::_instance = nullptr;
-        static int libcecInitStatus = 0;
 
 
-//=========================================== HdmiCecSink =========================================
+        //=========================================== HdmiCecSink =========================================
 
-       HdmiCecSink::HdmiCecSink()
-       : PluginHost::JSONRPC()
-        , _pwrMgrNotification(*this)
-        , _registeredEventHandlers(false)
-       {
-           LOGWARN("Initlaizing HdmiCecSink");
-       }
-
-       HdmiCecSink::~HdmiCecSink()
-       {
-       }
        const std::string HdmiCecSink::Initialize(PluginHost::IShell *service)
        {
 		   profileType = searchRdkProfile();
@@ -202,12 +190,6 @@ namespace WPEFramework
 
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
        {
-           if(_powerManagerPlugin)
-           {
-               _powerManagerPlugin.Reset();
-           }
-           _registeredEventHandlers = false;
-
 		profileType = searchRdkProfile();
 
 		if (profileType == STB || profileType == NOT_FOUND)
@@ -216,7 +198,7 @@ namespace WPEFramework
 			return ;
 		}
 
-	    CECDisable();
+        HdmiCecSink::_hdmiCecSink->SetEnabled(false);
 
         if(nullptr != _hdmiCecSink)
            {
