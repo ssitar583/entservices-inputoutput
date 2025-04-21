@@ -194,7 +194,7 @@ namespace WPEFramework {
                                     Exchange::JHdmiCecSink::Event::SetSystemAudioModeEvent(_parent, audioMode);
                                 }
 
-                                void ShortAudiodescriptorEvent(Exchange::IHdmiCecSink::IHdmiCecSinkShortAudioDescriptorIterator* ShortAudioDescriptor) override
+                                void ShortAudiodescriptorEvent(Exchange::IHdmiCecSink::IHdmiCecSinkShortAudioDescriptorIterator* const& ShortAudioDescriptor) override
                                 {
                                     LOGINFO("ShortAudiodescriptorEvent");
                                     Exchange::JHdmiCecSink::Event::ShortAudiodescriptorEvent(_parent, ShortAudioDescriptor);

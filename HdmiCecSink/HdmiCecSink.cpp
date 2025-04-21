@@ -134,12 +134,7 @@ namespace WPEFramework
 
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
-
-        HdmiCecSink* HdmiCecSink::_instance = nullptr;
-
-
-        //=========================================== HdmiCecSink =========================================
+       SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
        const std::string HdmiCecSink::Initialize(PluginHost::IShell *service)
        {
@@ -198,7 +193,7 @@ namespace WPEFramework
 			return ;
 		}
 
-        HdmiCecSink::_hdmiCecSink->SetEnabled(false);
+        HdmiCecSink::_hdmiCecSink->SetEnabled(false,success);
 
         if(nullptr != _hdmiCecSink)
            {
