@@ -109,7 +109,7 @@ namespace WPEFramework
 			return ;
 		}
 
-        bool success = false;
+        Exchange::IHdmiCecSink::HdmiCecSinkSuccess success = false;
 
         HdmiCecSink::_hdmiCecSink->SetEnabled(false,success);
 
