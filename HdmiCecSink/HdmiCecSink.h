@@ -197,7 +197,7 @@ namespace WPEFramework {
                                 void ShortAudiodescriptorEvent(Exchange::IHdmiCecSink::IHdmiCecSinkShortAudioDescriptorIterator* const& ShortAudioDescriptor) override
                                 {
                                     LOGINFO("ShortAudiodescriptorEvent");
-                                    Exchange::JHdmiCecSink::Event::ShortAudiodescriptorEvent(_parent, ShortAudioDescriptor);
+                                    Exchange::JHdmiCecSink::Event::ShortAudiodescriptorEvent(_parent, &ShortAudioDescriptor);
                                 }
 
                                 void StandbyMessageReceived(const int logicalAddress) override
