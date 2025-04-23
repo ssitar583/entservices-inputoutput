@@ -573,9 +573,10 @@ private:
             void sendKeyReleaseEvent(const int logicalAddress);
 	    void sendUserControlPressed(const int logicalAddress, int keyCode);
             void sendUserControlReleased(const int logicalAddress);
-			void sendGiveAudioStatusMsg();
-            void onPowerModeChanged(const PowerState &currentState, const PowerState &newState);
+            void onPowerModeChanged(const PowerState currentState, const PowerState newState);
             void registerEventHandlers();
+            void sendGiveAudioStatusMsg();
+            void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
 
@@ -585,33 +586,35 @@ private:
             END_INTERFACE_MAP
 
         private:
-            class PowerManagerNotification : public Exchange::IPowerManager::INotification {
+            class PowerManagerNotification : public Exchange::IPowerManager::IModeChangedNotification {
             private:
                 PowerManagerNotification(const PowerManagerNotification&) = delete;
                 PowerManagerNotification& operator=(const PowerManagerNotification&) = delete;
-            
+
             public:
                 explicit PowerManagerNotification(HdmiCecSink& parent)
                     : _parent(parent)
                 {
                 }
                 ~PowerManagerNotification() override = default;
-            
+
             public:
-                void OnPowerModeChanged(const PowerState &currentState, const PowerState &newState) override
+                void OnPowerModeChanged(const PowerState currentState, const PowerState newState) override
                 {
                     _parent.onPowerModeChanged(currentState, newState);
                 }
-                void OnPowerModePreChange(const PowerState &currentState, const PowerState &newState) override {}
-                void OnDeepSleepTimeout(const int &wakeupTimeout) override {}
-                void OnNetworkStandbyModeChanged(const bool &enabled) override {}
-                void OnThermalModeChanged(const ThermalTemperature &currentThermalLevel, const ThermalTemperature &newThermalLevel, const float &currentTemperature) override {}
-                void OnRebootBegin(const string &rebootReasonCustom, const string &rebootReasonOther, const string &rebootRequestor) override {}
+
+                template <typename T>
+                T* baseInterface()
+                {
+                    static_assert(std::is_base_of<T, PowerManagerNotification>(), "base type mismatch");
+                    return static_cast<T*>(this);
+                }
             
                 BEGIN_INTERFACE_MAP(PowerManagerNotification)
-                INTERFACE_ENTRY(Exchange::IPowerManager::INotification)
+                INTERFACE_ENTRY(Exchange::IPowerManager::IModeChangedNotification)
                 END_INTERFACE_MAP
-            
+
             private:
                 HdmiCecSink& _parent;
             };
@@ -667,6 +670,9 @@ private:
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
             bool m_sendKeyEventThreadRun;
+	    bool m_isAudioStatusInfoUpdated;
+	    bool m_audioStatusReceived;
+	    bool m_audioStatusTimerStarted;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
@@ -685,6 +691,7 @@ private:
 	    binary_semaphore m_semSignaltoArcRoutingThread;
             bool m_arcstarting;
             TpTimer m_arcStartStopTimer;
+	    TpTimer m_audioStatusDetectionTimer;
 
             Connection *smConnection;
 			std::vector<uint8_t> m_connectedDevices;
@@ -731,7 +738,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
-            void getHdmiArcPortID();
+	    void audioStatusTimerFunction();
 	    void getCecVersion();
         };
 	} // namespace Plugin
