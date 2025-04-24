@@ -27,6 +27,7 @@
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 
+
 namespace WPEFramework {
 
     namespace Plugin {
