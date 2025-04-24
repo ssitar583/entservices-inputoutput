@@ -27,8 +27,6 @@
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 
-
-
 namespace WPEFramework {
 
     namespace Plugin {
@@ -36,16 +34,16 @@ namespace WPEFramework {
 		class HdcpProfile : public PluginHost::IPlugin, public PluginHost::JSONRPC
 		{
 			private:
-                		class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
-                		{
+                class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
+                {
 					private:
-			            		Notification() = delete;
-			            		Notification(const Notification&) = delete;
-			            		Notification& operator=(const Notification&) = delete;
+			        	Notification() = delete;
+			            Notification(const Notification&) = delete;
+			            Notification& operator=(const Notification&) = delete;
 						
 					public:
 						explicit Notification(HdcpProfile *parent)
-								: _parent(*parent)
+							: _parent(*parent)
 						{
 							ASSERT(parent != nullptr);
 						}
@@ -61,7 +59,7 @@ namespace WPEFramework {
 							
 						void Activated(RPC::IRemoteConnection *) override
 						{
-						LOGINFO("HdcpProfile Notification Activated");
+							LOGINFO("HdcpProfile Notification Activated");
 						}
 		
 						void Deactivated(RPC::IRemoteConnection *connection) override
