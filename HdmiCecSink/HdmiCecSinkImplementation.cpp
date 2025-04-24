@@ -994,15 +994,14 @@ namespace WPEFramework
        {
 
             LOGINFO("Notify the DS ");
-            std::vector<int> shortAudioDescriptors;
-            for (size_t i = 0; i < audiodescriptor.Length(); i++) {
-                shortAudioDescriptors.push_back(audiodescriptor[i].Number());
-            }
+            
 
-            while (index != _hdmiCecSourceNotifications.end()) {
-                (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
-                index++;
-            }
+
+
+            //while (index != _hdmiCecSourceNotifications.end()) {
+            //    (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
+            //    index++;
+            //}
        }
 
        void HdmiCecSinkImplementation::Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg)
