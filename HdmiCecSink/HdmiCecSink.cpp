@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "HdmiCecSink.h"
 
 #include "ccec/Connection.hpp"
