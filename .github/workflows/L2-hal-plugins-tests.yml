@@ -21,7 +21,7 @@ on:
    
 jobs:
   L2_HAL_Plugins_using_Mock:
-    runs-on: comcast-ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: partners.artifactory.comcast.com/rdk-docker/mw_hal_emulator_docker_image:latest
       credentials:
