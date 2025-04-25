@@ -398,7 +398,7 @@ namespace WPEFramework
         ASSERT(service != nullptr);
         PowerState pwrStateCur = WPEFramework::Exchange::IPowerManager::POWER_STATE_UNKNOWN;
         PowerState pwrStatePrev = WPEFramework::Exchange::IPowerManager::POWER_STATE_UNKNOWN;
-        uint32_t res = Core::ERROR_GENERAL;
+        Core::hresult res = Core::ERROR_GENERAL;
         string msg;
         if (Utils::IARM::init()) {
             //Initialize cecEnableStatus to false in ctor
