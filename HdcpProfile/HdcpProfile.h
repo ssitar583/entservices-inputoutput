@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Module.h"
-#include <interfaces/IHdcpProfile.h>  // Ensure this includes the definition of HDCPStatus
+#include <interfaces/IHdcpProfile.h> 
 #include <interfaces/json/JsonData_HdcpProfile.h>
 #include <interfaces/json/JHdcpProfile.h>
 #include <interfaces/IConfiguration.h>
@@ -35,7 +35,7 @@ namespace WPEFramework {
 		class HdcpProfile : public PluginHost::IPlugin, public PluginHost::JSONRPC
 		{
 			private:
-                class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
+            	class Notification : public RPC::IRemoteConnection::INotification, public Exchange::IHdcpProfile::INotification
                 {
 					private:
 			        	Notification() = delete;
@@ -78,7 +78,7 @@ namespace WPEFramework {
 						private:
 							HdcpProfile &_parent;
 				};
-				
+			
 			public:
 				HdcpProfile(const HdcpProfile &) = delete;
 				HdcpProfile &operator=(const HdcpProfile &) = delete;
