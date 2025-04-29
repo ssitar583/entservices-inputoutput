@@ -1022,10 +1022,11 @@ void AVInput::dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_
         dsVRRType_t new_vrrType = eventData->data.hdmi_in_vrr_mode.vrr_type;
         LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS  event  port: %d, VRR Type: %d", hdmi_in_port,new_vrrType);
 
-       if(new_vrrType == dsVRR_NONE && m_currentVrrType != dsVRR_NONE)
-       {
-       		AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_currentVrrType, false);
-       }
+        if(new_vrrType == dsVRR_NONE)
+        {       if(m_currentVrrType != dsVRR_NONE){
+                        AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_currentVrrType, false);
+                }
+        }
        else
        {
 	       if(m_currentVrrType != dsVRR_NONE){
@@ -1034,6 +1035,7 @@ void AVInput::dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_
 	       AVInput::_instance->AVInputVRRChange(hdmi_in_port, new_vrrType, true);
        }
 	m_currentVrrType = new_vrrType;
+    }
 }
 
 void AVInput::AVInputALLMChange( int port , bool allm_mode)
