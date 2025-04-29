@@ -48,7 +48,7 @@ public:
     int m_primVolume;
     int m_inputVolume; //Player Volume
 
-    static dsVRRType_t m_vrrType;
+    static dsVRRType_t m_currentVrrType;
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
@@ -119,10 +119,6 @@ private:
 
     void AVInputALLMChange( int port , bool allmMode);
     void AVInputVRRChange( int port , dsVRRType_t vrr_type, bool vrr_mode);
-    void HDMIVRRChange( int port , bool vrr_mode);
-    void AMDFreeSyncChange( int port , bool vrr_mode);
-    void AMDFreeSyncPremiumChange( int port , bool vrr_mode);
-    void AMDFreeSynciPremiumProChange( int port , bool vrr_mode);
     static void dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void hdmiInputAviContentTypeChange(int port, int content_type);
