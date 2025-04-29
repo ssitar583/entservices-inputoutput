@@ -99,7 +99,7 @@ def initialize_flask():
         print("Inside Utils.py : Exception in initialize_flask function")
 
 def initialize_hal_apis_with_negative_values():
-      '''This function is used to push the initial data towards the Flask server'''
+    '''This function is used to push the initial data towards the Flask server'''
     try:
         # Push the initial cec network data to Flask using http get requests - setDeviceConfig API
         create_device_response = requests.get("http://{}/Database.setDeviceConfig/{}".format(
