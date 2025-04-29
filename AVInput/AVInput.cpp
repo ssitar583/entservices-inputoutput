@@ -250,7 +250,7 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
     m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
     m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
-    m_vrrType = dsVRR_NONE;
+    m_currentVrrType = dsVRR_NONE;
 }
 
 void AVInput::UnregisterAll()
@@ -1019,20 +1019,21 @@ void AVInput::dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_
     {
        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
         int hdmi_in_port = eventData->data.hdmi_in_vrr_mode.port;
-        dsVRRType_t vrr_type = eventData->data.hdmi_in_vrr_mode.vrr_type;
-        LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS  event  port: %d, VRR Type: %d", hdmi_in_port,vrr_type);
+        dsVRRType_t new_vrrType = eventData->data.hdmi_in_vrr_mode.vrr_type;
+        LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS  event  port: %d, VRR Type: %d", hdmi_in_port,new_vrrType);
 
-       if(vrr_type == dsVRR_NONE)
+       if(new_vrrType == dsVRR_NONE && m_currentVrrType != dsVRR_NONE)
        {
-       AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_vrrType, false);
+       		AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_currentVrrType, false);
        }
        else
        {
-       AVInput::_instance->AVInputVRRChange(hdmi_in_port, vrr_type, true);
-       AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_vrrType, false);
+	       if(m_currentVrrType != dsVRR_NONE){
+		       AVInput::_instance->AVInputVRRChange(hdmi_in_port, m_currentVrrType, false);
+	       }
+	       AVInput::_instance->AVInputVRRChange(hdmi_in_port, new_vrrType, true);
        }
-       m_vrrType = vrr_type;
-    }
+	m_currentVrrType = new_vrrType;
 }
 
 void AVInput::AVInputALLMChange( int port , bool allm_mode)
@@ -1047,63 +1048,33 @@ void AVInput::AVInputALLMChange( int port , bool allm_mode)
 
 void AVInput::AVInputVRRChange( int port , dsVRRType_t vrr_type, bool vrr_mode)
 {
+    JsonObject params;
     switch(vrr_type)
     {
            case dsVRR_HDMI_VRR:
-                   AVInput::_instance->HDMIVRRChange( port , vrr_mode);
-                   break;
+                params["id"] = port;
+                params["gameFeature"] = "VRR-HDMI";
+                params["mode"] = vrr_mode;
+                break;
            case dsVRR_AMD_FREESYNC:
-                   AVInput::_instance->AMDFreeSyncChange( port , vrr_mode);
-                   break;
+                params["id"] = port;
+                params["gameFeature"] = "VRR-FREESYNC";
+                params["mode"] = vrr_mode;
+                break;
            case dsVRR_AMD_FREESYNC_PREMIUM:
-                   AVInput::_instance->AMDFreeSyncPremiumChange( port , vrr_mode);
-                   break;
+                params["id"] = port;
+                params["gameFeature"] = "VRR-FREESYNC-PREMIUM";
+                params["mode"] = vrr_mode;
+                break;
            case dsVRR_AMD_FREESYNC_PREMIUM_PRO:
-                   AVInput::_instance->AMDFreeSynciPremiumProChange( port , vrr_mode);
-                   break;
-           default :
-                   break;
+                params["id"] = port;
+                params["gameFeature"] = "VRR-FREESYNC-PREMIUM-PRO";
+                params["mode"] = vrr_mode;
+                break;
+           default:
+                break; 
     }
-}
-
-void AVInput::HDMIVRRChange( int port , bool vrr_mode)
-{
-    JsonObject params;
-    params["id"] = port;
-    params["gameFeature"] = "VRR-HDMI";
-    params["mode"] = vrr_mode;
-
-    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
-}
-
-void AVInput::AMDFreeSyncChange( int port , bool vrr_mode)
-{
-    JsonObject params;
-    params["id"] = port;
-    params["gameFeature"] = "VRR-FREESYNC";
-    params["mode"] = vrr_mode;
-
-    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
-}
-
-void AVInput::AMDFreeSyncPremiumChange( int port , bool vrr_mode)
-{
-    JsonObject params;
-    params["id"] = port;
-    params["gameFeature"] = "VRR-FREESYNC-PREMIUM";
-    params["mode"] = vrr_mode;
-
-    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
-}
-
-void AVInput::AMDFreeSynciPremiumProChange( int port , bool vrr_mode)
-{
-    JsonObject params;
-    params["id"] = port;
-    params["gameFeature"] = "VRR-FREESYNC-PREMIUM-PRO";
-    params["mode"] = vrr_mode;
-
-    sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+	sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
 }
 
 uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
