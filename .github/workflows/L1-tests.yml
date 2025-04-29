@@ -113,7 +113,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: develop
+          ref: feature/RDK-55554
           token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Checkout entservices-inputoutput
