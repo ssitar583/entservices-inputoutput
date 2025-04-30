@@ -308,7 +308,7 @@
              hdcpstatus.isConnected = isConnected;
              hdcpstatus.isHDCPCompliant = isHDCPCompliant;
              hdcpstatus.isHDCPEnabled = isHDCPEnabled;
-             hdcpstatus.hdcpReason = static_cast<WPEFramework::Exchange::IHdcpProfile::HDCPReason>(eHDCPEnabledStatus);
+             hdcpstatus.hdcpReason = eHDCPEnabledStatus;
  
              if(hdcpProtocol == dsHDCP_VERSION_2X)
              {
