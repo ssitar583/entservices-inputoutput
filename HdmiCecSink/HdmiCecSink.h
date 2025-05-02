@@ -42,6 +42,10 @@
 #include <interfaces/IPowerManager.h>
 #include "PowerManagerInterface.h"
 
+#include <interfaces/IStore2.h>
+
+#define HDMICECSINK_NAMESPACE "hdmicecsink"
+
 using namespace WPEFramework;
 using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
 using ThermalTemperature = WPEFramework::Exchange::IPowerManager::ThermalTemperature;
@@ -527,6 +531,8 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+	    Exchange::IStore2* _remotStoreObject;
+			mutable Core::CriticalSection _adminLock;
             virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
@@ -577,6 +583,8 @@ private:
             void registerEventHandlers();
             void sendGiveAudioStatusMsg();
             void getHdmiArcPortID();
+	    uint32_t storemuteval(const string& val);
+	    uint32_t getmuteval(string& val);
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
 

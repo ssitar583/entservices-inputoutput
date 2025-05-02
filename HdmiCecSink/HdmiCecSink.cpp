@@ -693,6 +693,8 @@ namespace WPEFramework
        const std::string HdmiCecSink::Initialize(PluginHost::IShell *service)
        {
             InitializePowerManager(service);
+
+			_remotStoreObject = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
 		   profileType = searchRdkProfile();
 
 		   if (profileType == STB || profileType == NOT_FOUND)
@@ -957,6 +959,7 @@ namespace WPEFramework
             	}
                 if (_instance->cecEnableStatus)
             {
+				LOGINFO("shiva-dbg cecEnableStatus is true, sending power state %d \n", powerState);
             if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED )
             {
             	_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
@@ -966,6 +969,20 @@ namespace WPEFramework
             	   /*  reset the current active source when TV on going to standby */
                    			    HdmiCecSink::_instance->m_currentActiveSource = -1;
             	}
+				else if (powerState == DEVICE_POWER_STATE_ON) {
+					if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED)) {
+						LOGINFO("%s: check ARC status from persistence and setit _instance->m_logicalAddressAllocated=%d\n",__FUNCTION__, _instance->m_logicalAddressAllocated);
+						string muteState = "";
+						if(getmuteval(muteState)){
+							if (muteState == "1") {
+								LOGINFO("shiva-dbg : mute state is ON set to ARC\n");
+								_instance->sendUserControlPressed(_instance->m_logicalAddressAllocated, MUTE);
+								LOGINFO("shiva-dbg : sent mute pressed\n");
+								_instance->sendUserControlReleased(_instance->m_logicalAddressAllocated);LOGINFO("shiva-dbg : sent mute released\n");	
+							}
+						}
+					}
+				}
                                         /* Initiate a ping straight away */
                                         HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
                                         HdmiCecSink::_instance->m_ThreadExitCV.notify_one();
@@ -1145,6 +1162,47 @@ namespace WPEFramework
 		    sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
 	    }
          }
+         
+         uint32_t HdmiCecSink::storemuteval(const string& value) 
+		{
+    		uint32_t status = Core::ERROR_GENERAL;
+			string key = "AVRMUTE";
+			LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
+    		_adminLock.Lock();
+
+    		if (nullptr != _remotStoreObject)
+    		{
+        		status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, HDMICECSINK_NAMESPACE, key, value, 0);
+				LOGINFO("shiva-dbg Key[%s] value[%s] status[%d]", key.c_str(), value.c_str(), status);
+    		}
+    		else
+    		{
+        		LOGERR("shiva-dbg _remotStoreObject is null");
+    		}
+    		_adminLock.Unlock();
+    		return status == Core::ERROR_GENERAL ? 0 : 1;
+		}
+
+         uint32_t HdmiCecSink::getmuteval(string& value)	
+		{
+    		uint32_t status = Core::ERROR_GENERAL;
+			string key = "AVRMUTE";
+			uint32_t ttl = 0;
+    		_adminLock.Lock();
+
+    		if (nullptr != _remotStoreObject)
+    		{
+        		status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, HDMICECSINK_NAMESPACE, key, value, ttl);
+				LOGINFO("shiva-dbg Key[%s] value[%s] status[%d]", key.c_str(), value.c_str(), status);
+    		}
+    		else
+    		{
+        		LOGERR("shiva-dbg _remotStoreObject is null");
+    		}
+    		_adminLock.Unlock();
+    		return status == Core::ERROR_GENERAL ? 0 : 1;
+		} 
+
          void HdmiCecSink::Process_ReportAudioStatus_msg(const ReportAudioStatus msg)
          {
             JsonObject params;
@@ -1165,6 +1223,10 @@ namespace WPEFramework
 			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
             params["volumeLevel"] = msg.status.getAudioVolume();
+	    	if(storemuteval(std::to_string(msg.status.getAudioMuteStatus())))
+		    LOGINFO("shiva-dbg MuteStatus stored\n");
+
+
             sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
 
          }
@@ -1182,7 +1244,12 @@ namespace WPEFramework
 			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 100);
                           break;
 		       case MUTE:
+			  {
 			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
+			   std::string value = "";
+			   if(getmuteval(value))
+				   LOGINFO("shiva-dbg MuteStatus got\n");
+			  }
 			   break;
 		       case UP:
 			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_UP)), 100);
@@ -1805,7 +1872,22 @@ namespace WPEFramework
 
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
            {
+			std::string mute = "";
+			LOGINFO("shiva-dbg Audio Status Wrapper \n");
 	      sendGiveAudioStatusMsg();
+		  if(powerState == DEVICE_POWER_STATE_ON)
+	      {
+			if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED)){
+				if(getmuteval(mute)){
+					if (mute == "1") {
+						LOGINFO("shiva-dbg MuteStatus is ON\n");
+						JsonObject params;
+						params["muteStatus"] = 1;
+						_instance->smConnection->sendTo(LogicalAddress(5), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
+					}
+				}
+			}
+		  }
 	      returnResponse(true);
 	   }
 	   uint32_t HdmiCecSink::setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response)
