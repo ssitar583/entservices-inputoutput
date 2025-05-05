@@ -109,17 +109,21 @@ endmacro()
 set (HDCPPROFILE_INC ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/HdcpProfile ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/helpers)
 add_plugin_test_ex(PLUGIN_HDCPPROFILE tests/test_HdcpProfile.cpp "${HDCPPROFILE_INC}" "${NAMESPACE}HdcpProfile")
 
+# PLUGIN_HDMIINPUT
+set (HDMIINPUT_INC ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/HdmiInput ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/helpers)
+add_plugin_test_ex(PLUGIN_HDMIINPUT tests/test_HdcpProfile.cpp "${HDMIINPUT_INC}" "${NAMESPACE}HdmiInput")
+
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
 
 if (RDK_SERVICES_L1_TEST)
    find_library(TESTMOCKLIB_LIBRARIES NAMES L1TestMocklib)
    if (TESTMOCKLIB_LIBRARIES)
-       message ("KKK3 Found mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+       message ("Found mock libraries ${TESTMOCKLIB_LIBRARIES} library")
        target_link_libraries(${MODULE_NAME} ${TESTMOCKLIB_LIBRARIES})
    else (TESTMOCKLIB_LIBRARIES)
-       message ("KKK3 Require ${TESTMOCKLIB_LIBRARIES} library")
+       message ("Require ${TESTMOCKLIB_LIBRARIES} library")
    endif (TESTMOCKLIB_LIBRARIES)
-endif (RDK_SERVICES_L2_TEST)
+endif (RDK_SERVICES_L1_TEST)
 
 include_directories(${TEST_INC})
 
