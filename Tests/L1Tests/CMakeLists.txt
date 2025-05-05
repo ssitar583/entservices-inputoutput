@@ -111,7 +111,7 @@ add_plugin_test_ex(PLUGIN_HDCPPROFILE tests/test_HdcpProfile.cpp "${HDCPPROFILE_
 
 # PLUGIN_HDMIINPUT
 set (HDMIINPUT_INC ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/HdmiInput ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/helpers)
-add_plugin_test_ex(PLUGIN_HDMIINPUT tests/test_HdcpProfile.cpp "${HDMIINPUT_INC}" "${NAMESPACE}HdmiInput")
+add_plugin_test_ex(PLUGIN_HDMIINPUT tests/test_HdmiInput.cpp "${HDMIINPUT_INC}" "${NAMESPACE}HdmiInput")
 
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
 
