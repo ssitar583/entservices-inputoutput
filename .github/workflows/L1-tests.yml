@@ -332,7 +332,7 @@ jobs:
           -DDS_FOUND=ON
           -DHAS_FRONT_PANEL=ON
           -DRDK_SERVICES_L1_TEST=ON
-          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_HDCPPROFILE=OFF
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_HDMIINPUT=ON          
           -DUSE_THUNDER_R4=ON
