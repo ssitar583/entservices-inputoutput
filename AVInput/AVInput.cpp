@@ -1175,7 +1175,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
      }
     else
     {
-        LOGWARN("AVInput::getGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM, HDMI VRR, AMD FreeSync Premium");
+        LOGWARN("AVInput::getGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM, VRR-HDMI, VRR-FREESYNC-PREMIUM");
 	returnResponse(false);
     }
     returnResponse(true);
