@@ -23,6 +23,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+set (TEST_SRC
+    tests/test_UtilsFile.cpp
+    tests/test_JSON.cpp
+)
+
 include(FetchContent)
 FetchContent_Declare(
         googletest
