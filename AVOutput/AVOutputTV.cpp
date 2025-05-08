@@ -373,6 +373,16 @@ namespace Plugin {
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
+        registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
+        registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
+        registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
+        registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
+        registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
+
+        registerMethod("getAISuperResolution", &AVOutputTV::getAISuperResolution, this);
+        registerMethod("setAISuperResolution", &AVOutputTV::setAISuperResolution, this);
+        registerMethod("resetAISuperResolution", &AVOutputTV::resetAISuperResolution, this);
+
 
         LOGINFO("Exit\n");
     }
@@ -507,8 +517,6 @@ namespace Plugin {
 
     bool AVOutputTV::getPQParamV2(const JsonObject& parameters,
         const std::string& paramName,
-        tvContextCaps_t*& capStore,
-        int& maxCap,
         tvPQParameterIndex_t paramType,
         int& outValue)
     {
@@ -539,7 +547,7 @@ namespace Plugin {
         return false;
     }
 
-    bool AVOutputTV::setPQParamV2(const JsonObject& parameters, const std::string& paramName,
+    bool AVOutputTV::applyPictureSetting(const JsonObject& parameters, const std::string& paramName,
         tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap)
     {
         LOGINFO("Entry: %s\n", paramName.c_str());
@@ -587,7 +595,7 @@ namespace Plugin {
         return true;
     }
 
-    uint32_t AVOutputTV::getCapsV2(
+    uint32_t AVOutputTV::getPQCapabilityWithContext(
         const std::function<tvError_t( tvContextCaps_t**,int*)>& getCapsFunc,
         const char* key,
         const JsonObject& parameters,
@@ -664,55 +672,90 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_backlight) {
             return this->GetBacklightCaps(max_backlight, context_caps);
         }, "Backlight", parameters, response);
     }
 
     uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_brightness) {
             return this->GetBrightnessCaps(max_brightness, context_caps);
         },
         "Brightness", parameters, response);
     }
 
     uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_contrast) {
             return this->GetContrastCaps(max_contrast, context_caps);
         },
         "Contrast", parameters, response);
     }
 
     uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_sharpness) {
             return this->GetSharpnessCaps(max_sharpness, context_caps);
         },
         "Sharpness", parameters, response);
     }
 
     uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_saturation) {
             return this->GetSaturationCaps(max_saturation, context_caps);
         },
         "Saturation", parameters, response);
     }
 
     uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_hue) {
             return this->GetHueCaps(max_hue, context_caps);
         },
         "Hue", parameters, response);
     }
 
     uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_precision) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
-        "PrecisionDetails", parameters, response);
+        "PrecisionDetail", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetLocalContrastEnhancementCaps(max_val, context_caps);
+        },
+        "LocalContrastEnhancement", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetMPEGNoiseReductionCaps(max_val, context_caps);
+        },
+        "MPEGNoiseReduction", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetDigitalNoiseReductionCaps(max_val, context_caps);
+        },
+        "DigitalNoiseReduction", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetAISuperResolutionCaps(max_val, context_caps);
+        },
+        "AISuperResolution", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetMEMCCaps(max_val, context_caps);
+        },
+        "MEMC", parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_latency) {
             return this->GetLowLatencyStateCaps(max_latency, context_caps);
         },
         "LowLatencyState", parameters, response);
@@ -1241,6 +1284,83 @@ namespace Plugin {
         }
     }
 
+    uint32_t AVOutputTV::resetAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    {
+        returnResponse(false);
+    }
+
+    uint32_t AVOutputTV::getAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int aiSuperResolution = 0;
+        bool success = getPQParamV2(parameters,
+            "AISuperResolution",
+            PQ_PARAM_AI_SUPER_RESOLUTION,
+            aiSuperResolution);
+        if (success) {
+            response["AISuperResolution"] = aiSuperResolution;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::string value;
+        int aiSuperResolution;
+        tvError_t ret = tvERROR_NONE;
+
+        value = parameters.HasLabel("AISuperResolution") ? parameters["AISuperResolution"].String() : "";
+        returnIfParamNotFound(parameters, "AISuperResolution");
+        aiSuperResolution = std::stoi(value);
+
+        // Validate the aiSuperResolution value
+        if (aiSuperResolution < 0 || aiSuperResolution > m_maxAISuperResolution)
+        {
+            LOGERR("Input value %d is out of range for aiSuperResolution", aiSuperResolution);
+            returnResponse(false);
+        }
+
+        tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
+        tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
+        tvPQModeIndex_t currentPQMode = PQ_MODE_STANDARD;
+        GetCurrentVideoSource(&currentSrc);
+        GetCurrentVideoFormat(&currentFmt);
+        if (currentFmt == VIDEO_FORMAT_NONE)
+            currentFmt = VIDEO_FORMAT_SDR;
+        char picMode[PIC_MODE_NAME_MAX]={0};
+        if(!getCurrentPictureMode(picMode)) {
+            LOGERR("Failed to get the Current picture mode\n");
+        }
+        else {
+            std::string local = picMode;
+            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(local));
+        }
+        LOGINFO("currentPQMode %d, currentFmt %d, currentSrc %d ",currentPQMode, currentFmt, currentSrc);
+        // Call HAL setter for AISuperResolution
+        if (isSetRequiredForParam("AISuperResolution", parameters)) {
+            //ret = SetAISuperResolution(currentSrc, currentPQMode, currentFmt, aiSuperResolution);
+            ret = tvERROR_NONE;
+        }
+        if(ret != tvERROR_NONE)
+        {
+            LOGERR("Failed to set AISuperResolution\n");
+            returnResponse(false);
+        }
+        else
+        {
+            // Update the TV parameter
+            int retval = updateAVoutputTVParamV2("set", "AISuperResolution", parameters, PQ_PARAM_AI_SUPER_RESOLUTION, aiSuperResolution);
+            if (retval != 0)
+            {
+                LOGERR("Failed to Save AISuperResolution to ssm_data\n");
+                returnResponse(false);
+            }
+            LOGINFO("Exit : AISuperResolution successful to value: %d\n", aiSuperResolution);
+            returnResponse(true);
+        }
+    }
+
     uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -1279,7 +1399,7 @@ namespace Plugin {
         {
             int backlight = 0;
             bool success = getPQParamV2(parameters,
-                "Backlight", m_backlightCaps, m_maxBacklight,
+                "Backlight",
                 PQ_PARAM_BACKLIGHT,
                 backlight);
             if (success) {
@@ -1344,12 +1464,13 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
+            bool success = applyPictureSetting(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
             returnResponse(success);
         }
 
     }
-    bool AVOutputTV::resetPQParamV2(const JsonObject& parameters,
+
+    bool AVOutputTV::resetPictureParamToDefault(const JsonObject& parameters,
         const std::string& paramName,
         tvPQParameterIndex_t pqIndex,
         tvSetFunction halSetter)
@@ -1454,7 +1575,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPQParamV2(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight);
+            bool success= resetPictureParamToDefault(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight);
             returnResponse(success);
         }
     }
@@ -1538,7 +1659,7 @@ namespace Plugin {
         {
             int brightness = 0;
             bool success = getPQParamV2(parameters,
-                "Brightness", m_brightnessCaps, m_maxBrightness,
+                "Brightness",
                 PQ_PARAM_BRIGHTNESS,
                 brightness);
             if (success) {
@@ -1598,7 +1719,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
+            bool success = applyPictureSetting(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
             returnResponse(success);
         }
     }
@@ -1659,7 +1780,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = resetPQParamV2(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness);
+            bool success = resetPictureParamToDefault(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness);
             returnResponse(success);
         }
     }
@@ -1742,7 +1863,7 @@ namespace Plugin {
         {
             int contrast = 0;
             bool success = getPQParamV2(parameters,
-                "Contrast", m_contrastCaps, m_maxContrast,
+                "Contrast",
                 PQ_PARAM_CONTRAST,
                 contrast);
             if (success) {
@@ -1803,7 +1924,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
+            bool success = applyPictureSetting(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
             returnResponse(success);
         }
     }
@@ -1863,7 +1984,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPQParamV2(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast);
+            bool success= resetPictureParamToDefault(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast);
             returnResponse(success);
 
         }
@@ -1948,7 +2069,7 @@ namespace Plugin {
         {
             int saturation = 0;
             bool success = getPQParamV2(parameters,
-                "saturation", m_saturationCaps, m_maxSaturation,
+                "saturation",
                 PQ_PARAM_SATURATION,
                 saturation);
             if (success) {
@@ -2009,7 +2130,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
+            bool success = applyPictureSetting(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
             returnResponse(success);
         }
     }
@@ -2068,7 +2189,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPQParamV2(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation);
+            bool success= resetPictureParamToDefault(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation);
             returnResponse(success);
 
         }
@@ -2154,7 +2275,7 @@ namespace Plugin {
         {
             int sharpness = 0;
             bool success = getPQParamV2(parameters,
-                "Sharpness", m_sharpnessCaps, m_maxSharpness,
+                "Sharpness",
                 PQ_PARAM_SHARPNESS,
                 sharpness);
             if (success) {
@@ -2215,7 +2336,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
+            bool success = applyPictureSetting(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
             returnResponse(success);
         }
     }
@@ -2275,7 +2396,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPQParamV2(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness);
+            bool success= resetPictureParamToDefault(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness);
             returnResponse(success);
 
         }
@@ -2361,7 +2482,7 @@ namespace Plugin {
         {
             int hue = 0;
             bool success = getPQParamV2(parameters,
-                "Hue", m_hueCaps, m_maxHue,
+                "Hue",
                 PQ_PARAM_HUE,
                 hue);
             if (success) {
@@ -2422,7 +2543,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = setPQParamV2(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
+            bool success = applyPictureSetting(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
             returnResponse(success);
         }
     }
@@ -2482,7 +2603,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPQParamV2(parameters, "Hue", PQ_PARAM_HUE, SetHue);
+            bool success= resetPictureParamToDefault(parameters, "Hue", PQ_PARAM_HUE, SetHue);
             returnResponse(success);
 
         }
