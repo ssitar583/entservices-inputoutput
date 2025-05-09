@@ -887,7 +887,7 @@ namespace Plugin {
                 case PQ_MODE_AIPQ: optionsArray.Add("AI PQ"); break;
                 case PQ_MODE_DARK: optionsArray.Add("Dark"); break;
                 case PQ_MODE_BRIGHT: optionsArray.Add("Bright"); break;
-                case PQ_MODE_DVIQ: optionsArray.Add("IQ"); break;
+                case PQ_MODE_IQ: optionsArray.Add("IQ"); break;
                 default: break; // Skip invalid/unsupported modes
             }
         }

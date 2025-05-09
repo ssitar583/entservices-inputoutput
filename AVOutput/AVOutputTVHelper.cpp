@@ -2304,7 +2304,7 @@ const std::map<int, std::string> AVOutputTV::pqModeMap = {
     {PQ_MODE_SPORTS, "Sports"},
     {PQ_MODE_THEATER, "Theater"},
     {PQ_MODE_GAME, "Game"},
-    {PQ_MODE_DVIQ, "IQ"},
+    {PQ_MODE_IQ, "IQ"},
     {PQ_MODE_DARK, "Dark"},
     {PQ_MODE_BRIGHT, "Bright"},
     {PQ_MODE_AIPQ, "AI PQ"},
@@ -2977,7 +2977,7 @@ tvError_t AVOutputTV::GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_p
         else if (modeStr == "AI PQ") (*mode)[i] = PQ_MODE_AIPQ;
         else if (modeStr == "Dark") (*mode)[i] = PQ_MODE_DARK;
         else if (modeStr == "Bright") (*mode)[i] = PQ_MODE_BRIGHT;
-        else if (modeStr == "IQ") (*mode)[i] = PQ_MODE_DVIQ;
+        else if (modeStr == "IQ") (*mode)[i] = PQ_MODE_IQ;
         else (*mode)[i] = PQ_MODE_INVALID;
     }
 
