@@ -361,12 +361,10 @@ namespace Plugin {
         registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
         registerMethod("setPrecisionDetail", &AVOutputTV::setPrecisionDetail, this);
         registerMethod("resetPrecisionDetail", &AVOutputTV::resetPrecisionDetail, this);
-        //registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
 
         registerMethod("getSDRGamma", &AVOutputTV::getSDRGamma, this);
         registerMethod("setSDRGamma", &AVOutputTV::setSDRGamma, this);
         registerMethod("resetSDRGamma", &AVOutputTV::resetSDRGamma, this);
-        //registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
 
         registerMethod("getLocalContrastEnhancement", &AVOutputTV::getLocalContrastEnhancement, this);
         registerMethod("setLocalContrastEnhancement", &AVOutputTV::setLocalContrastEnhancement, this);
@@ -4535,63 +4533,6 @@ namespace Plugin {
         }
     }
 
-#if 0
-    uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
-        LOGINFO("Entry");
-
-        JsonObject result = JsonObject();
-        result["platformSupport"] = true;
-
-        JsonObject context;
-
-        JsonObject bright;
-        JsonArray brightDV;
-        brightDV.Add("IP");
-        brightDV.Add("Tuner");
-        brightDV.Add("HDMI1");
-        brightDV.Add("HDMI2");
-        brightDV.Add("HDMI3");
-        bright["DV"] = brightDV;
-        context["Bright"] = bright;
-
-        JsonObject dark;
-        JsonArray darkDV;
-        darkDV.Add("IP");
-        darkDV.Add("Tuner");
-        darkDV.Add("HDMI1");
-        darkDV.Add("HDMI2");
-        darkDV.Add("HDMI3");
-        dark["DV"] = darkDV;
-        context["Dark"] = dark;
-
-        JsonObject game;
-        JsonArray gameDV;
-        gameDV.Add("IP");
-        gameDV.Add("Tuner");
-        gameDV.Add("HDMI1");
-        gameDV.Add("HDMI2");
-        gameDV.Add("HDMI3");
-        game["DV"] = gameDV;
-        context["Game"] = game;
-
-        JsonObject dolbyVisionIQ;
-        JsonArray dolbyVisionIQDV;
-        dolbyVisionIQDV.Add("IP");
-        dolbyVisionIQDV.Add("Tuner");
-        dolbyVisionIQDV.Add("HDMI1");
-        dolbyVisionIQDV.Add("HDMI2");
-        dolbyVisionIQDV.Add("HDMI3");
-        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
-        context["IQ"] = dolbyVisionIQ;
-
-        result["context"] = context;
-        response["result"] = result;
-
-        LOGINFO("Exit : getPrecisionDetailCaps successful");
-        returnResponse(true);
-    }
-#endif
-
     uint32_t AVOutputTV::getSDRGamma(const JsonObject& parameters, JsonObject& response) {
         LOGINFO("Entry");
 
@@ -4702,66 +4643,6 @@ namespace Plugin {
             returnResponse(true);
         }
     }
-
-#if 0
-    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
-        LOGINFO("Entry");
-
-        JsonObject result = JsonObject();
-        result["platformSupport"] = true;
-
-        JsonArray options;
-        options.Add("2.0");
-        options.Add("2.2");
-        options.Add("2.4");
-        options.Add("BT.1886");
-        result["options"] = options;
-
-        JsonObject context;
-
-        JsonArray standard;
-        standard.Add("IP");
-        standard.Add("Tuner");
-        standard.Add("HDMI1");
-        standard.Add("HDMI2");
-        standard.Add("HDMI3");
-        standard.Add("Composite1");
-        context["Standard"] = standard;
-
-        JsonArray vivid;
-        vivid.Add("IP");
-        vivid.Add("Tuner");
-        vivid.Add("HDMI1");
-        vivid.Add("HDMI2");
-        vivid.Add("HDMI3");
-        vivid.Add("Composite1");
-        context["Vivid"] = vivid;
-
-        JsonArray sports;
-        sports.Add("IP");
-        sports.Add("Tuner");
-        sports.Add("HDMI1");
-        sports.Add("HDMI2");
-        sports.Add("HDMI3");
-        sports.Add("Composite1");
-        context["Sports"] = sports;
-
-        JsonArray movie;
-        movie.Add("IP");
-        movie.Add("Tuner");
-        movie.Add("HDMI1");
-        movie.Add("HDMI2");
-        movie.Add("HDMI3");
-        movie.Add("Composite1");
-        context["Movie"] = movie;
-
-        result["context"] = context;
-        response["result"] = result;
-
-        LOGINFO("Exit : getSDRGammaCaps successful");
-        returnResponse(true);
-    }
-#endif
 
     uint32_t AVOutputTV::getLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response) {
         LOGINFO("Entry");
