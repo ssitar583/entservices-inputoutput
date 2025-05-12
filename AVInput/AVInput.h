@@ -48,7 +48,7 @@ public:
     int m_primVolume;
     int m_inputVolume; //Player Volume
 
-    static dsVRRType_t m_currentVrrType;
+    dsVRRType_t m_currentVrrType;
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
