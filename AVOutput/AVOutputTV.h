@@ -255,8 +255,9 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCaps)
 		DECLARE_JSON_RPC_METHOD(getLowLatencyStateCapsV2)
 		DECLARE_JSON_RPC_METHOD(getColorTemperatureCapsV2)
-		DECLARE_JSON_RPC_METHOD(getSdrGammaCaps)
+		DECLARE_JSON_RPC_METHOD(getSDRGammaCaps)
 		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
@@ -448,8 +449,9 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps);
 		tvError_t GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps);
 		tvError_t GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps);
-		tvError_t GetSdrGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps);
+		tvError_t GetSDRGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps);
 		tvError_t GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_t* num_dimming_mode, tvContextCaps_t** context_caps);
+		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
 		tvError_t GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);

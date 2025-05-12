@@ -404,8 +404,9 @@ namespace Plugin {
         registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
-        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+        registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
         registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
+        registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
@@ -711,7 +712,7 @@ namespace Plugin {
         return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
-        "PrecisionDetails", parameters, response);
+        "PrecisionDetail", parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -759,12 +760,12 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSdrGammaCaps(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
         tvSdrGamma_t* sdr_gamma = nullptr;
         size_t num_sdr_gamma = 0;
         tvContextCaps_t* context_caps = nullptr;
 
-        tvError_t err = GetSdrGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
+        tvError_t err = GetSDRGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
         if (err != tvERROR_NONE) {
             return err;
         }
@@ -823,6 +824,48 @@ namespace Plugin {
         response["DimmingMode"] = dimmingModeJson;
 
         free(dimming_mode);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getAutoBacklightModeCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+	tvBacklightMode_t* m_backlightModes = nullptr;
+	size_t m_numBacklightModes = 0;
+	tvContextCaps_t* m_backlightModeCaps = nullptr;
+
+        JsonObject backlightModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+	    tvError_t err = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
+	    if (err != tvERROR_NONE) {
+            return err;
+        }
+        for (size_t i = 0; i < m_numBacklightModes; ++i) {
+            switch (m_backlightModes[i]) {
+                case tvBacklightMode_MANUAL:
+                    optionsArray.Add("Manual");
+                    break;
+                case tvBacklightMode_AMBIENT:
+                    optionsArray.Add("Ambient");
+                    break;
+                case tvBacklightMode_ECO:
+                    optionsArray.Add("Eco");
+                    break;
+                default:
+                    LOGINFO("Unknown backlightMode option \n");
+                    break;
+            }
+        }
+
+        rangeInfo["options"] = optionsArray;
+        backlightModeJson["rangeInfo"] = rangeInfo;
+        backlightModeJson["platformSupport"] = true;
+
+        backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
+        response["BacklightMode"] = backlightModeJson;
+
+        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+        free(m_backlightModes);
         returnResponse(true);
     }
 

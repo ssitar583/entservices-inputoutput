@@ -2741,7 +2741,7 @@ tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
 }
 
 tvError_t AVOutputTV::GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps) {
-    return GetCaps("PrecisionDetails", max_precision, context_caps);
+    return GetCaps("PrecisionDetail", max_precision, context_caps);
 }
 tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps){
     return GetCaps("LowLatencyState", max_latency, context_caps);
@@ -2799,7 +2799,7 @@ tvError_t AVOutputTV::GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t
 }
 
 
-tvError_t AVOutputTV::GetSdrGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps) {
+tvError_t AVOutputTV::GetSDRGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps) {
     LOGINFO("Entry\n");
     JsonObject root;
     if (ReadJsonFile(root) != tvERROR_NONE) {
@@ -2887,6 +2887,52 @@ tvError_t AVOutputTV::GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_
 
     return tvERROR_NONE;
 
+}
+
+tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps)
+{
+    LOGINFO("Entry\n");
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    std::string key = "BacklightMode";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_backlight_mode = optionsArray.Length();
+    *backlight_mode = static_cast<tvBacklightMode_t*>(malloc(*num_backlight_mode * sizeof(tvBacklightMode_t)));
+    if (!(*backlight_mode)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_backlight_mode; ++i) {
+        std::string modeStr = optionsArray[i].String();
+
+        if (modeStr == "Manual") (*backlight_mode)[i] = tvBacklightMode_MANUAL ;
+        else if (modeStr == "Ambient") (*backlight_mode)[i] = tvBacklightMode_AMBIENT ;
+        else (*backlight_mode)[i] = tvBacklightMode_INVALID ; //tvBacklightMode_MAX 
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*backlight_mode);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
 }
 
 tvError_t AVOutputTV::GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps) {
