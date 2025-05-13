@@ -364,25 +364,48 @@ namespace Plugin {
         registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
         registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
         registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
-        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
-        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
         registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
-        registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
-        registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
-        registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
-        registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
-        registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
+        registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
+        registerMethod("get2PointWBCapsV2", &AVOutputTV::get2PointWBCapsV2, this);
+        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
 
+        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
+        registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
+        registerMethod("setPrecisionDetail", &AVOutputTV::setPrecisionDetail, this);
+        registerMethod("resetPrecisionDetail", &AVOutputTV::resetPrecisionDetail, this);
+
+        registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
+        registerMethod("getLocalContrastEnhancement", &AVOutputTV::getLocalContrastEnhancement, this);
+        registerMethod("setLocalContrastEnhancement", &AVOutputTV::setLocalContrastEnhancement, this);
+        registerMethod("resetLocalContrastEnhancement", &AVOutputTV::resetLocalContrastEnhancement, this);
+
+        registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
+        registerMethod("getMPEGNoiseReduction", &AVOutputTV::getMPEGNoiseReduction, this);
+        registerMethod("setMPEGNoiseReduction", &AVOutputTV::setMPEGNoiseReduction, this);
+        registerMethod("resetMPEGNoiseReduction", &AVOutputTV::resetMPEGNoiseReduction, this);
+
+        registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
+        registerMethod("getDigitalNoiseReduction", &AVOutputTV::getDigitalNoiseReduction, this);
+        registerMethod("setDigitalNoiseReduction", &AVOutputTV::setDigitalNoiseReduction, this);
+        registerMethod("resetDigitalNoiseReduction", &AVOutputTV::resetDigitalNoiseReduction, this);
+
+        registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
+        registerMethod("getMEMC", &AVOutputTV::getMEMC, this);
+        registerMethod("setMEMC", &AVOutputTV::setMEMC, this);
+        registerMethod("resetMEMC", &AVOutputTV::resetMEMC, this);
+
+        registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
         registerMethod("getAISuperResolution", &AVOutputTV::getAISuperResolution, this);
         registerMethod("setAISuperResolution", &AVOutputTV::setAISuperResolution, this);
         registerMethod("resetAISuperResolution", &AVOutputTV::resetAISuperResolution, this);
 
+        registerMethod("getMultiPointWBCaps", &AVOutputTV::getMultiPointWBCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -504,18 +527,18 @@ namespace Plugin {
         {"TV ZOOM",          tvDisplayMode_ZOOM},
         {"TV FULL",          tvDisplayMode_FULL}
     };
-    static const std::unordered_map<tvDimmingMode_t, std::string> dimmingModeReverseMap = {
+    static const std::unordered_map<int, std::string> dimmingModeReverseMap = {
         { tvDimmingMode_Fixed, "Fixed" },
         { tvDimmingMode_Local, "Local" },
         { tvDimmingMode_Global, "Global" }
     };
-    static const std::unordered_map<std::string, tvDimmingMode_t> dimmingModeMap = {
+    static const std::unordered_map<std::string, int> dimmingModeMap = {
         { "Fixed", tvDimmingMode_Fixed },
         { "Local", tvDimmingMode_Local },
         { "Global", tvDimmingMode_Global }
     };
 
-    bool AVOutputTV::getPQParamV2(const JsonObject& parameters,
+    bool AVOutputTV::getPQParamFromContext(const JsonObject& parameters,
         const std::string& paramName,
         tvPQParameterIndex_t paramType,
         int& outValue)
@@ -547,7 +570,91 @@ namespace Plugin {
         return false;
     }
 
-    bool AVOutputTV::applyPictureSetting(const JsonObject& parameters, const std::string& paramName,
+    bool AVOutputTV::getEnumPQParamString(
+        const JsonObject& parameters,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqType,
+        const std::unordered_map<int, std::string>& enumToStrMap,
+        std::string& outStr)
+    {
+        LOGINFO("getEnumPQParamString Entry for %s\n", paramName.c_str());
+
+        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, paramName);
+        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+            validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+            validContext.pq_mode == PQ_MODE_INVALID))
+        {
+            LOGWARN("No valid context for get %s", paramName.c_str());
+            return false;
+        }
+
+        paramIndex_t indexInfo {
+            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
+        };
+
+        int paramValue = 0;
+        int err = getLocalparam(paramName, indexInfo, paramValue, pqType);
+        if (err != 0) {
+            LOGERR("Failed to get %s from localparam", paramName.c_str());
+            return false;
+        }
+
+        auto it = enumToStrMap.find(paramValue);
+        if (it != enumToStrMap.end()) {
+            outStr = it->second;
+            LOGINFO("%s = %s", paramName.c_str(), outStr.c_str());
+            return true;
+        } else {
+            LOGERR("Enum value %d not found in map for %s", paramValue, paramName.c_str());
+            return false;
+        }
+    }
+
+    bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
+        const std::string& inputKey,           // e.g., "mode"
+        const std::string& paramName,          // e.g., "AutoBacklightMode"
+        const std::unordered_map<std::string, int>& valueMap,
+        tvPQParameterIndex_t paramType,
+        std::function<tvError_t(int)> halSetter)
+    {
+        if (!parameters.HasLabel(inputKey.c_str())) {
+        LOGERR("Missing input field: %s", inputKey.c_str());
+        return false;
+        }
+
+        std::string value = parameters[inputKey.c_str()].String();
+        auto it = valueMap.find(value);
+        if (it == valueMap.end()) {
+        LOGERR("Invalid value '%s' for parameter: %s", value.c_str(), inputKey.c_str());
+        return false;
+        }
+
+        int intVal = it->second;
+
+        // Only call HAL for current system context
+        if (isSetRequiredForParam(paramName, parameters)) {
+            LOGINFO("Calling HAL for %s = %s", paramName.c_str(), value.c_str());
+            tvError_t ret = halSetter(intVal);
+            if (ret != tvERROR_NONE) {
+            LOGERR("HAL setter failed for %s", paramName.c_str());
+            return false;
+            }
+        }
+
+        // Persist the parameter contextually
+        int result = updateAVoutputTVParamV2("set", paramName, parameters, paramType, intVal);
+        if (result != 0) {
+        LOGERR("Persistence failed for %s", paramName.c_str());
+        return false;
+        }
+
+        LOGINFO("setEnumPQParam successful: %s = %s", paramName.c_str(), value.c_str());
+        return true;
+    }
+
+    bool AVOutputTV::setIntPQParam(const JsonObject& parameters, const std::string& paramName,
         tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap)
     {
         LOGINFO("Entry: %s\n", paramName.c_str());
@@ -579,7 +686,7 @@ namespace Plugin {
         if (isSetRequiredForParam(paramName, parameters)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
-            if (ret != tvERROR_NONE) {
+            if (ret != tvERROR_NONE){
                 LOGERR("Failed to set %s\n", paramName.c_str());
                 return false;
             }
@@ -747,6 +854,62 @@ namespace Plugin {
         "AISuperResolution", parameters, response);
     }
 
+    uint32_t AVOutputTV::getMultiPointWBCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        int num_hal_matrix_points = 0;
+        int rgb_min = 0, rgb_max = 0;
+        int num_ui_matrix_points = 0;
+        double* ui_matrix_positions = nullptr;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t ret = GetMultiPointWBCaps(
+            &num_hal_matrix_points,
+            &rgb_min,
+            &rgb_max,
+            &num_ui_matrix_points,
+            &ui_matrix_positions,
+            &context_caps
+        );
+
+        if (ret != tvERROR_NONE) {
+            LOGWARN("GetMultiPointWBCaps failed: %s", getErrorString(ret).c_str());
+            returnResponse(false);
+        }
+
+        response["numHalMatrixPoints"] = num_hal_matrix_points;
+        response["rgbMin"] = rgb_min;
+        response["rgbMax"] = rgb_max;
+        response["numUiMatrixPoints"] = num_ui_matrix_points;
+
+        // Add UI matrix positions
+        JsonArray uiPosArray;
+        for (int i = 0; i < num_ui_matrix_points; ++i) {
+            uiPosArray.Add(ui_matrix_positions[i]);
+        }
+        response["uiMatrixPositions"] = uiPosArray;
+
+        // Add contextCaps
+        JsonArray contextArray;
+        if (context_caps) {
+            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
+                JsonObject ctx;
+                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                contextArray.Add(ctx);
+            }
+        }
+        response["contextCaps"] = contextArray;
+
+        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+        delete[] ui_matrix_positions;
+
+        LOGINFO("Exit\n");
+        returnResponse(true);
+    }
+
     uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
         return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetMEMCCaps(max_val, context_caps);
@@ -775,7 +938,7 @@ namespace Plugin {
     };
 
     // Reverse lookup: enum → string
-    const std::map<int, std::string> colorTempReverseMap = {
+    const std::unordered_map<int, std::string> colorTempReverseMap = {
         {tvColorTemp_STANDARD,          "Standard"},
         {tvColorTemp_WARM,              "Warm"},
         {tvColorTemp_COLD,              "Cold"},
@@ -813,7 +976,8 @@ namespace Plugin {
         colorTempJson["context"] = parseContextCaps(context_caps);
         response["ColorTemperature"] = colorTempJson;
 
-        free(color_temp); //revisit
+        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+        free(color_temp);
         returnResponse(true);
     }
 
@@ -954,6 +1118,7 @@ namespace Plugin {
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
         response["BacklightMode"] = backlightModeJson;
 
+        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         free(m_backlightModes);
         returnResponse(true);
     }
@@ -988,8 +1153,10 @@ namespace Plugin {
 
         response["DolbyVisionCalibration"] = capsInfo;
 
+        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         delete min_values;
         delete max_values;
+
         returnResponse(true);
     }
 
@@ -1284,16 +1451,147 @@ namespace Plugin {
         }
     }
 
+    uint32_t AVOutputTV::resetPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "PrecisionDetail",
+                                            PQ_PARAM_PRECISION_DETAIL, SetPrecisionDetail);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "LocalContrastEnhancement",
+                                            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT, SetLocalContrastEnhancement);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "MPEGNoiseReduction",
+                                            PQ_PARAM_MPEG_NOISE_REDUCTION, SetMPEGNoiseReduction);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "DigitalNoiseReduction",
+                                            PQ_PARAM_DIGITAL_NOISE_REDUCTION, SetDigitalNoiseReduction);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "MEMC",
+                                            PQ_PARAM_MEMC, SetMEMC);
+    #endif
+        returnResponse(success);
+    }
+
     uint32_t AVOutputTV::resetAISuperResolution(const JsonObject& parameters, JsonObject& response)
     {
-        returnResponse(false);
+#if HAL_NOT_READY
+        bool success= false;
+#else
+        bool success= resetPQParamToDefault(parameters,"AISuperResolution",
+                                        PQ_PARAM_AI_SUPER_RESOLUTION, SetAISuperResolution);
+#endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int precisionDetail = 0;
+        bool success = getPQParamFromContext(parameters,
+            "PrecisionDetail",
+            PQ_PARAM_PRECISION_DETAIL,
+            precisionDetail);
+        if (success) {
+            response["PrecisionDetail"] = precisionDetail;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int localContraseEnhancement = 0;
+        bool success = getPQParamFromContext(parameters,
+            "LocalContrastEnhancement",
+            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,
+            localContraseEnhancement);
+        if (success) {
+            response["LocalContrastEnhancement"] = localContraseEnhancement;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int MPEGNoiseReduction = 0;
+        bool success = getPQParamFromContext(parameters,
+            "MPEGNoiseReduction",
+            PQ_PARAM_MPEG_NOISE_REDUCTION,
+            MPEGNoiseReduction);
+        if (success) {
+            response["MPEGNoiseReduction"] = MPEGNoiseReduction;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int digitalNoiseReduction = 0;
+        bool success = getPQParamFromContext(parameters,
+            "DigitalNoiseReduction",
+            PQ_PARAM_DIGITAL_NOISE_REDUCTION,
+            digitalNoiseReduction);
+        if (success) {
+            response["DigitalNoiseReduction"] = digitalNoiseReduction;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int MEMC = 0;
+        bool success = getPQParamFromContext(parameters,
+            "MEMC",
+            PQ_PARAM_MEMC,
+            MEMC);
+        if (success) {
+            response["MEMC"] = MEMC;
+        }
+        returnResponse(success);
     }
 
     uint32_t AVOutputTV::getAISuperResolution(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         int aiSuperResolution = 0;
-        bool success = getPQParamV2(parameters,
+        bool success = getPQParamFromContext(parameters,
             "AISuperResolution",
             PQ_PARAM_AI_SUPER_RESOLUTION,
             aiSuperResolution);
@@ -1303,62 +1601,146 @@ namespace Plugin {
         returnResponse(success);
     }
 
-    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setContextPQParam(const JsonObject& parameters, JsonObject& response,
+                                       const std::string& inputParamName,
+                                       const std::string& tr181ParamName,
+                                       int maxAllowedValue,
+                                       tvPQParameterIndex_t pqParamType,
+                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter)
     {
         LOGINFO("Entry");
-        std::string value;
-        int aiSuperResolution;
-        tvError_t ret = tvERROR_NONE;
 
-        value = parameters.HasLabel("AISuperResolution") ? parameters["AISuperResolution"].String() : "";
-        returnIfParamNotFound(parameters, "AISuperResolution");
-        aiSuperResolution = std::stoi(value);
-
-        // Validate the aiSuperResolution value
-        if (aiSuperResolution < 0 || aiSuperResolution > m_maxAISuperResolution)
-        {
-            LOGERR("Input value %d is out of range for aiSuperResolution", aiSuperResolution);
+        if (!parameters.HasLabel(inputParamName.c_str())) {
+            LOGERR("Missing parameter: %s", inputParamName.c_str());
             returnResponse(false);
         }
 
+        std::string valueStr = parameters[inputParamName.c_str()].String();
+        int value = std::stoi(valueStr);
+
+        if (value < 0 || value > maxAllowedValue) {
+            LOGERR("Input value %d is out of range for %s", value, inputParamName.c_str());
+            returnResponse(false);
+        }
+
+        // Get current context
         tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
         tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
         tvPQModeIndex_t currentPQMode = PQ_MODE_STANDARD;
+
         GetCurrentVideoSource(&currentSrc);
         GetCurrentVideoFormat(&currentFmt);
         if (currentFmt == VIDEO_FORMAT_NONE)
             currentFmt = VIDEO_FORMAT_SDR;
-        char picMode[PIC_MODE_NAME_MAX]={0};
-        if(!getCurrentPictureMode(picMode)) {
-            LOGERR("Failed to get the Current picture mode\n");
+
+        char picMode[PIC_MODE_NAME_MAX] = {0};
+        if (getCurrentPictureMode(picMode)) {
+            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(std::string(picMode)));
+        } else {
+            LOGERR("Failed to get current picture mode");
         }
-        else {
-            std::string local = picMode;
-            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(local));
-        }
-        LOGINFO("currentPQMode %d, currentFmt %d, currentSrc %d ",currentPQMode, currentFmt, currentSrc);
-        // Call HAL setter for AISuperResolution
-        if (isSetRequiredForParam("AISuperResolution", parameters)) {
-            //ret = SetAISuperResolution(currentSrc, currentPQMode, currentFmt, aiSuperResolution);
-            ret = tvERROR_NONE;
-        }
-        if(ret != tvERROR_NONE)
-        {
-            LOGERR("Failed to set AISuperResolution\n");
-            returnResponse(false);
-        }
-        else
-        {
-            // Update the TV parameter
-            int retval = updateAVoutputTVParamV2("set", "AISuperResolution", parameters, PQ_PARAM_AI_SUPER_RESOLUTION, aiSuperResolution);
-            if (retval != 0)
-            {
-                LOGERR("Failed to Save AISuperResolution to ssm_data\n");
+
+        LOGINFO("currentPQMode: %d, currentFmt: %d, currentSrc: %d", currentPQMode, currentFmt, currentSrc);
+
+        if (isSetRequiredForParam(tr181ParamName, parameters)) {
+    #if HAL_NOT_READY
+    #else
+            tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, value);
+            if (ret != tvERROR_NONE) {
+                LOGERR("HAL setter failed for %s", inputParamName.c_str());
                 returnResponse(false);
             }
-            LOGINFO("Exit : AISuperResolution successful to value: %d\n", aiSuperResolution);
-            returnResponse(true);
+    #endif
         }
+
+        // Persist
+        int retval = updateAVoutputTVParamV2("set", tr181ParamName, parameters, pqParamType, value);
+        if (retval != 0) {
+            LOGERR("Failed to save %s to ssm_data", inputParamName.c_str());
+            returnResponse(false);
+        }
+
+        LOGINFO("Exit: %s set successfully to %d", inputParamName.c_str(), value);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "aiSuperResolution",
+            "AISuperResolution",
+            m_maxAISuperResolution,
+            PQ_PARAM_AI_SUPER_RESOLUTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetAISuperResolution(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "memc", "MEMC",
+            m_maxMEMC,
+            PQ_PARAM_MEMC,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetMEMC(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "precisionDetail", "PrecisionDetail",
+            m_maxPrecisionDetail,
+            PQ_PARAM_PRECISION_DETAIL,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetPrecisionDetail(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "localContrastEnhancement", "LocalContrastEnhancement",
+            m_maxLocalContrastEnhancement,
+            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetLocalContrastEnhancement(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "mpegNoiseReduction", "MPEGNoiseReduction",
+            m_maxMPEGNoiseReduction,
+            PQ_PARAM_MPEG_NOISE_REDUCTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetMPEGNoiseReduction(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "digitalNoiseReduction", "DigitalNoiseReduction",
+            m_maxDigitalNoiseReduction,
+            PQ_PARAM_DIGITAL_NOISE_REDUCTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetDigitalNoiseReduction(src, mode, fmt, val);
+            }
+        );
     }
 
     uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)
@@ -1398,7 +1780,7 @@ namespace Plugin {
         else
         {
             int backlight = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "Backlight",
                 PQ_PARAM_BACKLIGHT,
                 backlight);
@@ -1464,13 +1846,69 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
+            bool success = setIntPQParam(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
             returnResponse(success);
         }
 
     }
+    bool AVOutputTV::resetPQParamToDefault(const JsonObject& parameters,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqIndex,
+        tvSetFunctionV2 halSetter)
+    {
+        LOGINFO("Entry: %s\n", paramName.c_str());
 
-    bool AVOutputTV::resetPictureParamToDefault(const JsonObject& parameters,
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int level = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        // Save reset state using V2 path
+        LOGINFO("Updating AVOutputTVParamV2 for: %s\n", paramName.c_str());
+        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, level);
+        if (retval != 0)
+        {
+            LOGERR("Failed to update %s via updateAVoutputTVParamV2. retval: %d\n", paramName.c_str(), retval);
+            return false;
+        }
+
+        // If update succeeded, apply value from local config to HAL
+        if (isSetRequiredForParam(paramName, parameters))
+        {
+            inputInfo.pqmode = "Current";
+            inputInfo.source = "Current";
+            inputInfo.format = "Current";
+
+            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+                getLocalparam(paramName, indexInfo, level, pqIndex) == 0)
+            {
+                LOGINFO("%s: getLocalparam success for %s: format=%d, source=%d, mode=%d, value=%d\n",
+                        __FUNCTION__, paramName.c_str(), indexInfo.formatIndex,
+                        indexInfo.sourceIndex, indexInfo.pqmodeIndex, level);
+                if (halSetter) {
+                    ret = halSetter(
+                        static_cast<tvVideoSrcType_t>(indexInfo.sourceIndex),
+                        static_cast<tvPQModeIndex_t>(indexInfo.pqmodeIndex),
+                        static_cast<tvVideoFormatType_t>(indexInfo.formatIndex),
+                        level);
+                    LOGINFO("%s halSetter return value: %d\n", paramName.c_str(), ret);
+                } else {
+                    LOGERR("halSetter is null for %s\n", paramName.c_str());
+                    return false;
+                }
+            }
+            else
+            {
+                LOGERR("%s: Failed to get local param for %s\n", __FUNCTION__, paramName.c_str());
+                return false;
+            }
+        }
+
+        LOGINFO("Exit: reset%s successful to value: %d\n", paramName.c_str(), level);
+        return true;
+    }
+
+    bool AVOutputTV::resetPQParamToDefault(const JsonObject& parameters,
         const std::string& paramName,
         tvPQParameterIndex_t pqIndex,
         tvSetFunction halSetter)
@@ -1575,7 +2013,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPictureParamToDefault(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight);
+            bool success= resetPQParamToDefault(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight);
             returnResponse(success);
         }
     }
@@ -1658,7 +2096,7 @@ namespace Plugin {
         else
         {
             int brightness = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "Brightness",
                 PQ_PARAM_BRIGHTNESS,
                 brightness);
@@ -1719,7 +2157,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
+            bool success = setIntPQParam(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
             returnResponse(success);
         }
     }
@@ -1780,7 +2218,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = resetPictureParamToDefault(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness);
+            bool success = resetPQParamToDefault(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness);
             returnResponse(success);
         }
     }
@@ -1862,7 +2300,7 @@ namespace Plugin {
         else
         {
             int contrast = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "Contrast",
                 PQ_PARAM_CONTRAST,
                 contrast);
@@ -1924,7 +2362,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
+            bool success = setIntPQParam(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
             returnResponse(success);
         }
     }
@@ -1984,7 +2422,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPictureParamToDefault(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast);
+            bool success= resetPQParamToDefault(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast);
             returnResponse(success);
 
         }
@@ -2068,7 +2506,7 @@ namespace Plugin {
         else
         {
             int saturation = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "saturation",
                 PQ_PARAM_SATURATION,
                 saturation);
@@ -2130,7 +2568,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
+            bool success = setIntPQParam(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
             returnResponse(success);
         }
     }
@@ -2189,7 +2627,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPictureParamToDefault(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation);
+            bool success= resetPQParamToDefault(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation);
             returnResponse(success);
 
         }
@@ -2274,7 +2712,7 @@ namespace Plugin {
         else
         {
             int sharpness = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "Sharpness",
                 PQ_PARAM_SHARPNESS,
                 sharpness);
@@ -2336,7 +2774,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
+            bool success = setIntPQParam(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
             returnResponse(success);
         }
     }
@@ -2396,7 +2834,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPictureParamToDefault(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness);
+            bool success= resetPQParamToDefault(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness);
             returnResponse(success);
 
         }
@@ -2481,7 +2919,7 @@ namespace Plugin {
         else
         {
             int hue = 0;
-            bool success = getPQParamV2(parameters,
+            bool success = getPQParamFromContext(parameters,
                 "Hue",
                 PQ_PARAM_HUE,
                 hue);
@@ -2543,7 +2981,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPictureSetting(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
+            bool success = setIntPQParam(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
             returnResponse(success);
         }
     }
@@ -2603,7 +3041,7 @@ namespace Plugin {
         }
         else
         {
-            bool success= resetPictureParamToDefault(parameters, "Hue", PQ_PARAM_HUE, SetHue);
+            bool success= resetPQParamToDefault(parameters, "Hue", PQ_PARAM_HUE, SetHue);
             returnResponse(success);
 
         }
@@ -2654,36 +3092,6 @@ namespace Plugin {
             LOGINFO("Exit\n");
             returnResponse(true);
         }
-    }
-
-    bool AVOutputTV::getColorTemperatureV2(const JsonObject& parameters, std::string& outMode)
-    {
-        LOGINFO("%s Entry\n", __FUNCTION__);
-
-        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "ColorTemp");
-        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
-            validContext.videoFormatType == VIDEO_FORMAT_NONE &&
-            validContext.pq_mode == PQ_MODE_INVALID))
-        {
-            LOGWARN("No Valid context for get ColorTemp");
-            return false;
-        }
-
-        paramIndex_t indexInfo {
-            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
-            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
-        };
-
-        int colortemp = 0;
-        int err = getLocalparam("ColorTemp", indexInfo, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
-        if (err == 0) {
-            outMode = getColorTemperatureStringFromEnum(static_cast<tvColorTemp_t>(colortemp));
-            LOGINFO("Color Temp Value: %s\n", outMode.c_str());
-            return true;
-        }
-
-        return false;
     }
 
     uint32_t AVOutputTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
@@ -2742,13 +3150,15 @@ namespace Plugin {
         }
         else
         {
-            std::string tempStr;
-            if (getColorTemperatureV2(parameters, tempStr)) {
-                response["colorTemperature"] = tempStr;
+            std::string outMode;
+            if (getEnumPQParamString(parameters, "ColorTemp",
+                 PQ_PARAM_COLOR_TEMPERATURE, colorTempReverseMap, outMode)) {
+                response["colorTemperature"] = outMode;
                 returnResponse(true);
             } else {
                 returnResponse(false);
             }
+
         }
     }
 
@@ -2811,43 +3221,16 @@ namespace Plugin {
         }
         else
         {
-            LOGINFO("Entry: setColorTemperatureV2\n");
-            tvError_t ret = tvERROR_NONE;
-            std::string key = "colorTemperature";
-            if (!parameters.HasLabel(key.c_str())) {
-                LOGERR("Missing parameter: %s", key.c_str());
-                returnResponse(false);
-            }
-            std::string value = parameters[key.c_str()].String();
-            auto it = colorTempMap.find(value);
-            if (it == colorTempMap.end()) {
-                LOGERR("Invalid colorTemperature: %s", value.c_str());
-                returnResponse(false);
-            }
-            int colorTempValue = it->second;
-            if( isSetRequiredForParam("ColorTemp", parameters))
-            {
-                LOGINFO("Proceed with %s\n",__FUNCTION__);
-                ret = SetColorTemperature((tvColorTemp_t)colorTempValue);
-            }
-            if(ret != tvERROR_NONE)
-            {
-                LOGERR("Failed to set ColorTemperature\n");
-                returnResponse(false);
-            }
-            else
-            {
-                // Update the TV parameter
-                LOGINFO("Updating AVOutputTVParamV2 for ColorTemperature %d", colorTempValue);
-                int retval = updateAVoutputTVParamV2("set", "ColorTemp", parameters, PQ_PARAM_COLOR_TEMPERATURE, colorTempValue);
-                if (retval != 0)
-                {
-                    LOGERR("Failed to Save ColorTemperature to ssm_data\n");
-                    returnResponse(false);
+            return setEnumPQParam(
+                parameters,
+                "colorTemperature",
+                "ColorTemp",
+                colorTempMap,
+                PQ_PARAM_COLOR_TEMPERATURE,
+                [](int val) {
+                    return SetColorTemperature(static_cast<tvColorTemp_t>(val));
                 }
-                LOGINFO("Exit : setColorTemperature successful to value: %d\n", colorTempValue);
-                returnResponse(true);
-            }
+            );
         }
     }
 
@@ -2951,36 +3334,6 @@ namespace Plugin {
         }
     }
 
-    bool AVOutputTV::getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode)
-    {
-        LOGINFO("%s Entry\n", __FUNCTION__);
-
-        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "DimmingMode");
-        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
-             validContext.videoFormatType == VIDEO_FORMAT_NONE &&
-             validContext.pq_mode == PQ_MODE_INVALID))
-        {
-            LOGWARN("No Valid context for get DimmingMode");
-            return false;
-        }
-
-        paramIndex_t indexInfo {
-            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
-            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
-        };
-
-        int dimmingMode = 0;
-        int err = getLocalparam("DimmingMode", indexInfo, dimmingMode, PQ_PARAM_DIMMINGMODE);
-        if (err == 0) {
-            getDimmingModeStringFromEnum(dimmingMode, outMode);
-            LOGINFO("DimmingMode Value: %s\n", outMode.c_str());
-            return true;
-        }
-
-        return false;
-    }
-
     uint32_t AVOutputTV::getBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -3029,7 +3382,8 @@ namespace Plugin {
         else
         {
             std::string mode;
-            if (getBacklightDimmingModeV2(parameters, mode)) {
+            if (getEnumPQParamString(parameters, "DimmingMode",
+                 PQ_PARAM_DIMMINGMODE, dimmingModeReverseMap, mode)) {
                 response["DimmingMode"] = mode;
                 returnResponse(true);
             } else {
@@ -4227,28 +4581,42 @@ namespace Plugin {
     uint32_t AVOutputTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_lowLatencyStateStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int lowlatencystate = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int lowlatencystate = 0;
+            if (parsingGetInputArgument(parameters, "LowLatencyState",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+            if (getParamIndex("LowLatencyState",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "LowLatencyState",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            int err = getLocalparam("LowLatencyState", indexInfo ,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
+            if( err == 0 ) {
+                response["lowLatencyState"] = std::to_string(lowlatencystate);
+                LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-        if (getParamIndex("LowLatencyState",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("LowLatencyState", indexInfo ,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
-        if( err == 0 ) {
-            response["lowLatencyState"] = std::to_string(lowlatencystate);
-            LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            int lowlatencystate = 0;
+            if (getPQParamFromContext(parameters, "LowLatencyState", PQ_PARAM_LOWLATENCY_STATE, lowlatencystate)) {
+                response["lowLatencyState"] = std::to_string(lowlatencystate);
+                LOGINFO("Exit : LowLatencyState Value: %d", lowlatencystate);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get LowLatencyState");
+                returnResponse(false);
+            }
         }
     }
 
@@ -4589,6 +4957,73 @@ namespace Plugin {
             }
             returnResponse(true);
         }
+    }
+
+    uint32_t AVOutputTV::getCMSCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: getCMSCapsV2");
+
+        int max_hue = 0, max_saturation = 0, max_luma = 0;
+        tvDataComponentColor_t* colorArray = nullptr;
+        tvComponentType_t* componentArray = nullptr;
+        size_t num_color = 0, num_component = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t ret = GetCMSCaps(&max_hue, &max_saturation, &max_luma,
+                                &colorArray, &componentArray,
+                                &num_color, &num_component, &context_caps);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("GetCMSCaps failed with error: %d", ret);
+            returnResponse(false);
+        }
+
+        // Range Info
+        JsonObject rangeHue, rangeSaturation, rangeLuma;
+        rangeHue["from"] = 0;
+        rangeHue["to"] = max_hue;
+        rangeSaturation["from"] = 0;
+        rangeSaturation["to"] = max_saturation;
+        rangeLuma["from"] = 0;
+        rangeLuma["to"] = max_luma;
+
+        response["rangeHue"] = rangeHue;
+        response["rangeSaturation"] = rangeSaturation;
+        response["rangeLuma"] = rangeLuma;
+
+        // Color Info
+        JsonArray colorJson;
+        for (size_t i = 0; i < num_color; ++i) {
+            colorJson.Add(getCMSColorStringFromEnum(colorArray[i]));
+        }
+        response["color"] = colorJson;
+
+        // Component Info
+        JsonArray componentJson;
+        for (size_t i = 0; i < num_component; ++i) {
+            componentJson.Add(getCMSComponentStringFromEnum(componentArray[i]));
+        }
+        response["component"] = componentJson;
+
+        // Context Info
+        JsonArray contextArray;
+        if (context_caps) {
+            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
+                JsonObject ctx;
+                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                contextArray.Add(ctx);
+            }
+        }
+        response["contextCaps"] = contextArray;
+
+        // Clean up dynamic memory
+        delete[] colorArray;
+        delete[] componentArray;
+
+        LOGINFO("Exit: getCMSCapsV2");
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getCMSCaps(const JsonObject& parameters, JsonObject& response)
@@ -5044,6 +5479,80 @@ namespace Plugin {
             returnResponse(true);
         }
     }
+    uint32_t AVOutputTV::get2PointWBCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: get2PointWBCapsV2");
+
+        int min_gain = 0, min_offset = 0, max_gain = 0, max_offset = 0;
+        tvWBColor_t* colorArray = nullptr;
+        tvWBControl_t* controlArray = nullptr;
+        size_t num_color = 0, num_control = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        // Call to GetCustom2PointWhiteBalanceCaps to fetch white balance capabilities
+        tvError_t ret = GetCustom2PointWhiteBalanceCaps(&min_gain, &min_offset, &max_gain, &max_offset,
+                                                        &colorArray, &controlArray,
+                                                        &num_color, &num_control, &context_caps);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("GetCustom2PointWhiteBalanceCaps failed with error: %d", ret);
+            returnResponse(false);
+        }
+
+        // Range Info: Gain and Offset
+        JsonObject rangeGain, rangeOffset;
+        rangeGain["from"] = min_gain;
+        rangeGain["to"] = max_gain;
+        rangeOffset["from"] = min_offset;
+        rangeOffset["to"] = max_offset;
+
+        JsonObject custom2PointWB;
+        custom2PointWB["rangeGain"] = rangeGain;
+        custom2PointWB["rangeOffset"] = rangeOffset;
+
+        // Control Info
+        JsonArray controlJson;
+        for (size_t i = 0; i < num_control; ++i) {
+            controlJson.Add(getWBControlStringFromEnum(controlArray[i])); // Convert control enum to string
+        }
+        custom2PointWB["control"] = controlJson;
+
+        // Color Info
+        JsonArray colorJson;
+        for (size_t i = 0; i < num_color; ++i) {
+            colorJson.Add(getWBColorStringFromEnum(colorArray[i])); // Convert color enum to string
+        }
+        custom2PointWB["color"] = colorJson;
+
+        // Platform Support Info
+        custom2PointWB["platformSupport"] = true; // Assuming platform supports this, set true or retrieve dynamically if needed
+
+        // Context Info
+        JsonObject contextJson;
+        if (context_caps) {
+            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
+                JsonObject ctx;
+                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+
+                // Context key is picture mode, and value is a list of formats
+                JsonArray formatArray;
+                formatArray.Add(ctx["videoFormat"]);
+                contextJson[convertPictureIndexToString(context_caps->contexts[i].pq_mode).c_str()] = formatArray;
+            }
+        }
+        custom2PointWB["context"] = contextJson;
+
+        response["Custom2PointWhiteBalance"] = custom2PointWB;
+
+        // Clean up dynamic memory
+        delete[] colorArray;
+        delete[] controlArray;
+
+        LOGINFO("Exit: get2PointWBCapsV2");
+        returnResponse(true);
+    }
 
     uint32_t AVOutputTV::get2PointWBCaps(const JsonObject& parameters, JsonObject& response)
     {
@@ -5171,83 +5680,120 @@ namespace Plugin {
     uint32_t AVOutputTV::setAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        std::string value;
-        tvBacklightMode_t mode = tvBacklightMode_AMBIENT;
-        capDetails_t inputInfo;
+        if(m_backlightModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            std::string value;
+            tvBacklightMode_t mode = tvBacklightMode_AMBIENT;
+            capDetails_t inputInfo;
 
+            value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
+            returnIfParamNotFound(parameters,"mode");
 
-        value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
-        returnIfParamNotFound(parameters,"mode");
+            if (validateInputParameter("AutoBacklightMode",value) != 0) {
+                LOGERR("%s: Range validation failed for AutoBacklightMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (validateInputParameter("AutoBacklightMode",value) != 0) {
-            LOGERR("%s: Range validation failed for AutoBacklightMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if (isPlatformSupport("AutoBacklightMode") != 0) {
+                returnResponse(false);
+            }
 
-	if (isPlatformSupport("AutoBacklightMode") != 0) {
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for AutoBacklightMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-	if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for AutoBacklightMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if(!value.compare("Manual")) {
+                mode = tvBacklightMode_MANUAL;
+            }
+            else if (!value.compare("Ambient")) {
+                mode = tvBacklightMode_AMBIENT;
+            }
+            else {
+                returnResponse(false);
+            }
 
-        if(!value.compare("Manual")) {
-            mode = tvBacklightMode_MANUAL;
-        }
-        else if (!value.compare("Ambient")) {
-            mode = tvBacklightMode_AMBIENT;
-        }
-        else {
-            returnResponse(false);
-        }
-        
-        tvError_t ret = SetCurrentBacklightMode (mode);
+            tvError_t ret = SetCurrentBacklightMode (mode);
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
-        }
-        else {
-            //Save AutoBacklightMode to localstore
-
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) {
-                LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+            if(ret != tvERROR_NONE) {
                 returnResponse(false);
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                //Save AutoBacklightMode to localstore
+
+                tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                if ( err != tr181Success ) {
+                    LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                    returnResponse(false);
+                }
+                else {
+                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                }
+                LOGINFO("Exit : SetAutoBacklightMode() value : %s\n",value.c_str());
+                returnResponse(true);
             }
-            LOGINFO("Exit : SetAutoBacklightMode() value : %s\n",value.c_str());
-            returnResponse(true);
+        }
+        else
+        {
+            bool success = false;
+#if 0
+            success = setEnumPQParam(
+                parameters,
+                "mode",                           // input key
+                "AutoBacklightMode",              // internal param name
+                backlightModeMap,                 // map<string, enum>
+                PQ_PARAM_BACKLIGHT_MODE,    // enum param index
+                [this](int val) {
+                    return SetCurrentBacklightMode(static_cast<tvBacklightMode_t>(val));
+                }
+            );
+#endif
+            returnResponse(success);
         }
     }
 
     uint32_t AVOutputTV::getAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
     {
+        if(m_backlightModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            TR181_ParamData_t param;
 
-        TR181_ParamData_t param;
+            if (isPlatformSupport("AutoBacklightMode") != 0) {
+                returnResponse(false);
+            }
 
-        if (isPlatformSupport("AutoBacklightMode") != 0) {
-            returnResponse(false);
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
+            if (err!= tr181Success) {
+                returnResponse(false);
+            }
+            else {
+                std::string s;
+                s+=param.value;
+                response["mode"] = s;
+                LOGINFO("Exit getAutoBacklightMode(): %s\n",s.c_str());
+                returnResponse(true);
+            }
         }
-
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
-        if (err!= tr181Success) {
+        else
+        {
+#if 0
+            int mode = 0;
+            if (getPQParamFromContext(parameters, "AutoBacklightMode", PQ_PARAM_BACKLIGHT_MODE, mode)) {
+                response["mode"] = std::to_string(mode);
+                LOGINFO("Exit : AutoBacklightMode Value: %d", mode);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get AutoBacklightMode");
+                returnResponse(false);
+            }
+#else
             returnResponse(false);
-        }
-        else {
-            std::string s;
-            s+=param.value;
-            response["mode"] = s;
-            LOGINFO("Exit getAutoBacklightMode(): %s\n",s.c_str());
-            returnResponse(true);
+#endif
         }
     
     }

@@ -205,6 +205,12 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(getAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getMEMC)
+
 
 
 		/*Get Capability API's*/
@@ -240,6 +246,8 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getSdrGammaCaps)
 		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getCMSCapsV2)
+		DECLARE_JSON_RPC_METHOD(get2PointWBCapsV2)
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
@@ -248,6 +256,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReductionCaps)
 		DECLARE_JSON_RPC_METHOD(getAISuperResolutionCaps)
 		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
+		DECLARE_JSON_RPC_METHOD(getMultiPointWBCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -269,7 +278,11 @@ class AVOutputTV : public AVOutputBase {
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
 		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(setAISuperResolution)
-
+		DECLARE_JSON_RPC_METHOD(setPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(setLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(setMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setMEMC)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -289,6 +302,12 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
 		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(resetAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(resetPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(resetLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(resetMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetMEMC)
+
 
 
     private:
@@ -369,6 +388,7 @@ class AVOutputTV : public AVOutputBase {
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		void getDisplayModeStringFromEnum(int value, std::string &toStore);
+		void getBacklightModeStringFromEnum(int value, std::string &toStore);
 
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
@@ -405,6 +425,8 @@ class AVOutputTV : public AVOutputBase {
 			auto it = reverseMap.find(key);
 			return (it != reverseMap.end()) ? it->second : defaultVal;
 		}
+#define HAL_NOT_READY 1
+#if HAL_NOT_READY
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
 		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
@@ -426,12 +448,32 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);
 		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
-
 		tvError_t GetLocalContrastEnhancementCaps(int* maxLocalContrastEnhancement, tvContextCaps_t** context_caps);
 		tvError_t GetMPEGNoiseReductionCaps(int* maxMPEGNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetDigitalNoiseReductionCaps(int* maxDigitalNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
 		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
+		tvError_t GetMultiPointWBCaps(int* num_hal_matrix_points,
+			int* rgb_min,
+			int* rgb_max,
+			int* num_ui_matrix_points,
+			double** ui_matrix_positions,
+			tvContextCaps_t** context_caps);
+		tvError_t GetCMSCaps(int* max_hue,
+			int* max_saturation,
+			int* max_luma,
+			tvDataComponentColor_t** color,
+			tvComponentType_t** component,
+			size_t* num_color,
+			size_t* num_component,
+			tvContextCaps_t** context_caps);
+		tvError_t GetCustom2PointWhiteBalanceCaps( int *min_gain,
+			int *min_offset, int *max_gain,
+			int *max_offset, tvWBColor_t **color,
+			tvWBControl_t **control, size_t* num_color,
+			size_t* num_control, tvContextCaps_t ** context_caps);
+
+#endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
@@ -443,25 +485,46 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters);
 		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
 		static bool isGlobalParam(const JsonArray& arr);
-		typedef tvError_t (*tvSetFunction)(int);
 		JsonArray getJsonArrayIfArray(const JsonObject& obj, const std::string& key);
 			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
-		bool resetPictureParamToDefault(const JsonObject& parameters,
+		typedef tvError_t (*tvSetFunction)(int);
+		bool resetPQParamToDefault(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
+		typedef tvError_t (*tvSetFunctionV2)(tvVideoSrcType_t, tvPQModeIndex_t,tvVideoFormatType_t,int);
+		bool resetPQParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			tvSetFunctionV2 halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
-		bool getPQParamV2(const JsonObject& parameters,
+		bool getPQParamFromContext(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t paramType,
 			int& outValue);
-		bool applyPictureSetting(const JsonObject& parameters, const std::string& paramName,
+		bool getEnumPQParamString(
+			const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqType,
+			const std::unordered_map<int, std::string>& enumToStrMap,
+			std::string& outStr);
+		bool setIntPQParam(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
+		bool setEnumPQParam(const JsonObject& parameters,
+			const std::string& inputKey,           // e.g., "mode"
+			const std::string& paramName,          // e.g., "AutoBacklightMode"
+			const std::unordered_map<std::string, int>& valueMap,
+			tvPQParameterIndex_t paramType,
+			std::function<tvError_t(int)> halSetter);
+		uint32_t setContextPQParam(const JsonObject& parameters, JsonObject& response,
+                                       const std::string& inputParamName,
+                                       const std::string& tr181ParamName,
+                                       int maxAllowedValue,
+                                       tvPQParameterIndex_t pqParamType,
+                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
 		bool setPictureModeV2(const JsonObject& parameters);
-		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
-		bool getColorTemperatureV2(const JsonObject& parameters, std::string& outMode);
 		bool getPictureModeV2(const JsonObject& parameters, std::string& outMode);
 		std::string getCurrentPictureModeAsString();
 		std::string getCurrentVideoFormatAsString();
@@ -512,9 +575,9 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_lowLatencyStateCaps = nullptr;
 		tvError_t m_lowLatencyStateStatus = tvERROR_NONE;
 
-		int m_maxPrecision = 0;
-		tvContextCaps_t* m_presicionDetailCaps = nullptr;
-		tvError_t m_presicionStatus = tvERROR_NONE;
+		int m_maxPrecisionDetail = 0;
+		tvContextCaps_t* m_precisionDetailCaps = nullptr;
+		tvError_t m_precisionDetailStatus = tvERROR_NONE;
 
 		int m_maxLocalContrastEnhancement = 0;
 		tvContextCaps_t* m_localContrastEnhancementCaps = nullptr;
@@ -582,6 +645,8 @@ class AVOutputTV : public AVOutputBase {
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;
 		static const std::map<int, std::string> videoSrcMap;
+		static const std::unordered_map<std::string, tvBacklightMode_t> backlightModeMap;
+
 		// Reverse maps
 		static const std::map<std::string, int> pqModeReverseMap;
 		static const std::map<std::string, int> videoFormatReverseMap;
