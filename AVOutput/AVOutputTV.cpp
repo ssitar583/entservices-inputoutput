@@ -4486,8 +4486,8 @@ namespace Plugin {
 
         int err = getLocalparam("PrecisionDetail",indexInfo,precisionDetail, PQ_PARAM_PRECISION_DETAIL);
         if( err == 0 ) {
-            response["precisionDetail"] = precisionDetailIntToString(precisionDetail);
-            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,precisionDetailIntToString(precisionDetail));
+            response["precisionDetail"] = precisionDetail;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,precisionDetail);
             returnResponse(true);
         }
         else {
@@ -4498,6 +4498,8 @@ namespace Plugin {
     uint32_t AVOutputTV::setPrecisionDetail(const JsonObject& parameters, JsonObject& response) {
         LOGINFO("Entry");
 
+
+
         std::string value;
         capDetails_t inputInfo;
         int precisionDetail = 0;
@@ -4505,12 +4507,15 @@ namespace Plugin {
         value = parameters.HasLabel("precisionDetail") ? parameters["precisionDetail"].String() : "";
         returnIfParamNotFound(parameters,"precisionDetail");
 
-        if (validatePrecisionDetailString(value) == 0) {
-            LOGERR("Failed in precisionDetail range validation:%s", __FUNCTION__);
+        precisionDetail = std::stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 1;
+
+        if (!validateIntegerInputParameterAdvanced(precisionDetail, from, to)) {
+            LOGERR("Failed in MEMC range validation:%s", __FUNCTION__);
             returnResponse(false);
         }
-
-        precisionDetail = precisionDetailstringToInt(value);
 
         LOGINFO("%s value %d is in range", __FUNCTION__,  precisionDetail);
 
@@ -4558,7 +4563,7 @@ namespace Plugin {
                 getParamIndex("PrecisionDetail", inputInfo,indexInfo);
                 int err = getLocalparam("PrecisionDetail",indexInfo,precisionDetail, PQ_PARAM_PRECISION_DETAIL);
                 if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,precisionDetailIntToString(precisionDetail));
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,precisionDetail);
                 }
                 else {
                     LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
@@ -4571,7 +4576,7 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,precisionDetailIntToString(precisionDetail));
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,precisionDetail);
             returnResponse(true);
         }
     }
