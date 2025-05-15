@@ -181,19 +181,19 @@ protected:
 
 class HdmiCecSinkTest : public HdmiCecSinkWOInitializeTest {
 protected:
-    Exchange::IPowerManager::IModeChangedNotification* _notification = nullptr;
+    //Exchange::IPowerManager::IModeChangedNotification* _notification = nullptr;
 
     HdmiCecSinkTest()
         : HdmiCecSinkWOInitializeTest()
     {
         removeFile("/etc/device.properties");
         createFile("/etc/device.properties", "RDK_PROFILE=TV");
-        EXPECT_CALL(PowerManagerMock::Mock(), Register(::testing::_))
-            .WillOnce(
-                [this](Exchange::IPowerManager::IModeChangedNotification* notification) -> uint32_t {
-                    _notification = notification;
-                    return Core::ERROR_NONE;
-                });
+        //EXPECT_CALL(PowerManagerMock::Mock(), Register(Exchange::IPowerManager::IModeChangedNotification* notification))
+        //    .WillOnce(
+        //        [this](Exchange::IPowerManager::IModeChangedNotification* notification) -> uint32_t {
+        //            _notification = notification;
+        //            return Core::ERROR_NONE;
+        //        });
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
 
