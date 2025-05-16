@@ -57,7 +57,6 @@ protected:
     string response;
 
     WrapsImplMock *p_wrapsImplMock = nullptr;
-    IarmBusImplMock  *p_iarmBusImplMock   = nullptr;
     Core::ProxyType<Plugin::HdcpProfileImplementation> hdcpProfileImpl;
 
     NiceMock<COMLinkMock> comLinkMock;
@@ -76,10 +75,6 @@ protected:
         p_wrapsImplMock = new NiceMock<WrapsImplMock>;
         printf("Pass created wrapsImplMock: %p ", p_wrapsImplMock);
         Wraps::setImpl(p_wrapsImplMock);
-        
-        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
-    	IarmBus::setImpl(p_iarmBusImplMock);
-
         
         ON_CALL(service, COMLink())
         .WillByDefault(::testing::Invoke(
@@ -133,12 +128,6 @@ protected:
             p_wrapsImplMock = nullptr;
         }
         PluginHost::IFactories::Assign(nullptr);
-        IarmBus::setImpl(nullptr);
-         if (p_iarmBusImplMock != nullptr)
-        {
-            delete p_iarmBusImplMock;
-            p_iarmBusImplMock = nullptr;
-        }
         
     }
 };
@@ -210,12 +199,15 @@ protected:
 
 class HDCPProfileEventIarmTest : public HDCPProfileEventTest {
 protected:
+    IarmBusImplMock  *p_iarmBusImplMock   = nullptr;
     ManagerImplMock   *p_managerImplMock = nullptr ;
     IARM_EventHandler_t dsHdmiEventHandler;
 
     HDCPProfileEventIarmTest()
         : HDCPProfileEventTest()
     {
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
         p_managerImplMock  = new NiceMock <ManagerImplMock>;
         device::Manager::setImpl(p_managerImplMock);
 
@@ -241,12 +233,19 @@ protected:
     virtual ~HDCPProfileEventIarmTest() override
     {
         plugin->Deinitialize(&service);
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
         device::Manager::setImpl(nullptr);
         if (p_managerImplMock != nullptr)
         {
             delete p_managerImplMock;
             p_managerImplMock = nullptr;
         }
+        
     }
 };
 
