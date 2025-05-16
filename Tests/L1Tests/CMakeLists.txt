@@ -111,7 +111,8 @@ endmacro()
 
 # PLUGIN_HDCPPROFILE
 set (HDCPPROFILE_INC ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/HdcpProfile ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/helpers)
-add_plugin_test_ex(PLUGIN_HDCPPROFILE tests/test_HdcpProfile.cpp "${HDCPPROFILE_INC}" "${NAMESPACE}HdcpProfile")
+set (HDCPPROFILE_LIBS ${NAMESPACE}HdcpProfile ${NAMESPACE}HdcpProfileImplementation)
+add_plugin_test_ex(PLUGIN_HDCPPROFILE tests/test_HdcpProfile.cpp "${HDCPPROFILE_INC}" "${HDCPPROFILE_LIBS}")
 
 # PLUGIN_HDMIINPUT
 set (HDMIINPUT_INC ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/HdmiInput ${CMAKE_SOURCE_DIR}/../entservices-inputoutput/helpers)

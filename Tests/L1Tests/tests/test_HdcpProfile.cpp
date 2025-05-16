@@ -33,6 +33,17 @@
 #include "ThunderPortability.h"
 #include "pwrMgr.h"
 #include "PowerManagerMock.h"
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cstdio>
+#include "COMLinkMock.h"
+#include "WrapsMock.h"
+#include "IarmBusMock.h"
+#include "WorkerPoolImplementation.h"
+#include "HdcpProfileImplementation.h"
+
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
@@ -45,14 +56,91 @@ protected:
     Core::JSONRPC::Message message;
     string response;
 
+    WrapsImplMock *p_wrapsImplMock = nullptr;
+    IarmBusImplMock  *p_iarmBusImplMock   = nullptr;
+    Core::ProxyType<Plugin::HdcpProfileImplementation> hdcpProfileImpl;
+
+    NiceMock<COMLinkMock> comLinkMock;
+    NiceMock<ServiceMock> service;
+    PLUGINHOST_DISPATCHER* dispatcher;
+    Core::ProxyType<WorkerPoolImplementation> workerPool;
+    
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+
     HDCPProfileTest()
         : plugin(Core::ProxyType<Plugin::HdcpProfile>::Create())
         , handler(*(plugin))
         , INIT_CONX(1, 0)
+        , workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(2, Core::Thread::DefaultStackSize(), 16))
     {
-    }
-    virtual ~HDCPProfileTest() = default;
+        p_wrapsImplMock = new NiceMock<WrapsImplMock>;
+        printf("Pass created wrapsImplMock: %p ", p_wrapsImplMock);
+        Wraps::setImpl(p_wrapsImplMock);
+        
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+    	IarmBus::setImpl(p_iarmBusImplMock);
 
+        
+        ON_CALL(service, COMLink())
+        .WillByDefault(::testing::Invoke(
+              [this]() {
+                    TEST_LOG("Pass created comLinkMock: %p ", &comLinkMock);
+                    return &comLinkMock;
+                }));
+
+
+        #ifdef USE_THUNDER_R4
+            ON_CALL(comLinkMock, Instantiate(::testing::_, ::testing::_, ::testing::_))
+                .WillByDefault(::testing::Invoke(
+                        [&](const RPC::Object& object, const uint32_t waitTime, uint32_t& connectionId) {
+                            hdcpProfileImpl = Core::ProxyType<Plugin::HdcpProfileImplementation>::Create();
+                            TEST_LOG("Pass created hdcpProfileImpl: %p ", &hdcpProfileImpl);
+                            return &hdcpProfileImpl;
+                    }));
+         #else
+            ON_CALL(comLinkMock, Instantiate(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+                 .WillByDefault(::testing::Return(hdcpProfileImpl));
+         #endif /*USE_THUNDER_R4 */
+        
+                PluginHost::IFactories::Assign(&factoriesImplementation);
+        
+                Core::IWorkerPool::Assign(&(*workerPool));
+                workerPool->Run();
+        
+                dispatcher = static_cast<PLUGINHOST_DISPATCHER*>(
+                plugin->QueryInterface(PLUGINHOST_DISPATCHER_ID));
+                dispatcher->Activate(&service);
+        
+                EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    }
+    virtual ~HDCPProfileTest() override
+    {
+        TEST_LOG("HdcpProfileTest Destructor");
+
+        plugin->Deinitialize(&service);
+
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        Core::IWorkerPool::Assign(nullptr);
+        workerPool.Release();
+    
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
+        PluginHost::IFactories::Assign(nullptr);
+        IarmBus::setImpl(nullptr);
+         if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+        
+    }
 };
 
 class HDCPProfileDsTest : public HDCPProfileTest {
@@ -122,15 +210,12 @@ protected:
 
 class HDCPProfileEventIarmTest : public HDCPProfileEventTest {
 protected:
-    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
     ManagerImplMock   *p_managerImplMock = nullptr ;
     IARM_EventHandler_t dsHdmiEventHandler;
 
     HDCPProfileEventIarmTest()
         : HDCPProfileEventTest()
     {
-        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
-        IarmBus::setImpl(p_iarmBusImplMock);
         p_managerImplMock  = new NiceMock <ManagerImplMock>;
         device::Manager::setImpl(p_managerImplMock);
 
@@ -156,12 +241,6 @@ protected:
     virtual ~HDCPProfileEventIarmTest() override
     {
         plugin->Deinitialize(&service);
-        IarmBus::setImpl(nullptr);
-        if (p_iarmBusImplMock != nullptr)
-        {
-            delete p_iarmBusImplMock;
-            p_iarmBusImplMock = nullptr;
-        }
         device::Manager::setImpl(nullptr);
         if (p_managerImplMock != nullptr)
         {
