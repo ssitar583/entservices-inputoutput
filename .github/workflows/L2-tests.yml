@@ -1,10 +1,8 @@
 name: L2-tests
 
+#enable the workflow incase of any plugin/testcase changes
 on:
-  push:
-    branches: [ main, develop, 'sprint/**', 'release/**' ]
-  pull_request:
-    branches: [ main, develop, 'sprint/**', 'release/**' ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Debug
@@ -551,18 +549,18 @@ jobs:
           lcov
           -r coverage.info
           '/usr/include/*'
-          '*/build/entservices-infra/_deps/*'
-          '*/build/entservices-deviceanddisplay/_deps/*'
+          '*/build/entservices-inputoutput/_deps/*'
           '*/build/entservices-entservices-testframework/_deps/*'
           '*/install/usr/include/*'
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
           '*/Tests/L2Tests/*'
+          '*/sqlite/*'
           -o filtered_coverage.info
           &&
           genhtml
           -o coverage
-          -t "entservices-testframework coverage"
+          -t "entservices-inputoutput coverage"
           filtered_coverage.info
 
       - name: Upload artifacts
