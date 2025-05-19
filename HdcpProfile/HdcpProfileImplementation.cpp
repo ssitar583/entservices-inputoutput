@@ -64,13 +64,16 @@
              if (_powerManagerPlugin) {
                 _powerManagerPlugin.Reset();
              }
+             LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM Call\n");
              DeinitializeIARM();
-          
+             LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM done\n");
              if(_service != nullptr)
              {
                 _service->Release();
              }
+             LOGINFO("Call HdcpProfileImplementation destructor-service object destructed\n");
              HdcpProfileImplementation::_instance = nullptr;
+             LOGINFO("Call HdcpProfileImplementation destructor-instance-destructed\n");
              mShell = nullptr;
          }
  
@@ -94,11 +97,14 @@
  
          void HdcpProfileImplementation::DeinitializeIARM()
          {
+             LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM called\n");
              if (Utils::IARM::isConnected())
              {
+                 LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM called-inside if\n");
                  IARM_Result_t res;
                  IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdcpProfileImplementation>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
                  IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdcpProfileImplementation>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDCP_STATUS, dsHdmiEventHandler) );
+                 LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM called-last if\n");
              }
          }
  
