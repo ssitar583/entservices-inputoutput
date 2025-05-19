@@ -68,7 +68,6 @@
              {
                 _service->Release();
              }
-             sleep(3);
              DeinitializeIARM();
              HdcpProfileImplementation::_instance = nullptr;
              mShell = nullptr;
