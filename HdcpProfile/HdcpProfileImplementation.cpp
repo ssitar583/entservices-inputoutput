@@ -65,6 +65,7 @@
                 _powerManagerPlugin.Reset();
              }
              DeinitializeIARM();
+          
              if(_service != nullptr)
              {
                 _service->Release();
