@@ -61,17 +61,18 @@
          HdcpProfileImplementation::~HdcpProfileImplementation()
          {
              LOGINFO("Call HdcpProfileImplementation destructor\n");
+             HdcpProfileImplementation::_instance = nullptr;
+             LOGINFO("Call HdcpProfileImplementation destructor-instance-destructed\n");
              if (_powerManagerPlugin) {
                 _powerManagerPlugin.Reset();
              }
              LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM Call\n");
              DeinitializeIARM();
              LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM done\n");
-             HdcpProfileImplementation::_instance = nullptr;
-             LOGINFO("Call HdcpProfileImplementation destructor-instance-destructed\n");
              mShell = nullptr;
              if(_service != nullptr)
              {
+                _service->Release();
                 _service = nullptr;
              }
              LOGINFO("Call HdcpProfileImplementation destructor-service object destructed\n");
