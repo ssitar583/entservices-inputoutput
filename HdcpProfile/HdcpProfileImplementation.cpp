@@ -258,13 +258,14 @@
  
          void HdcpProfileImplementation::dispatchEvent(Event event, const HDCPStatus &hdcpstatus)
          {
+             LOGINFO("dispatchEvent called");
              Core::IWorkerPool::Instance().Submit(Job::Create(this, event, hdcpstatus));
          }
  
          void HdcpProfileImplementation::Dispatch(Event event,const HDCPStatus& hdcpstatus)
          {
              _adminLock.Lock();
- 
+             LOGINFO("dispatch called"):
              std::list<Exchange::IHdcpProfile::INotification *>::const_iterator index(_hdcpProfileNotification.begin());
  
              switch (event)
@@ -273,6 +274,7 @@
                  {
                      while (index != _hdcpProfileNotification.end())
                      {
+                         LOGINFO("Dispatch event-in progress");
                          (*index)->OnDisplayConnectionChanged(hdcpstatus);
                          ++index;
                      }
