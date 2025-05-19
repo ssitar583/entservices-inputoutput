@@ -67,14 +67,15 @@
              LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM Call\n");
              DeinitializeIARM();
              LOGINFO("Call HdcpProfileImplementation destructor-DeinitializeIARM done\n");
-             // if(_service != nullptr)
-             // {
-             //    _service->Release();
-             // }
-             LOGINFO("Call HdcpProfileImplementation destructor-service object destructed\n");
              HdcpProfileImplementation::_instance = nullptr;
              LOGINFO("Call HdcpProfileImplementation destructor-instance-destructed\n");
              mShell = nullptr;
+             if(_service != nullptr)
+             {
+                _service->Release();
+                _service = nullptr;
+             }
+             LOGINFO("Call HdcpProfileImplementation destructor-service object destructed\n");
          }
  
          void HdcpProfileImplementation::InitializePowerManager(PluginHost::IShell *service)
