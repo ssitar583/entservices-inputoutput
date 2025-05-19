@@ -120,9 +120,6 @@ protected:
 
         plugin->Deinitialize(&service);
 
-        dispatcher->Deactivate();
-        dispatcher->Release();
-
         Core::IWorkerPool::Assign(nullptr);
         workerPool.Release();
     
@@ -139,7 +136,8 @@ protected:
             delete p_iarmBusImplMock;
             p_iarmBusImplMock = nullptr;
         }
-        
+        dispatcher->Deactivate();
+        dispatcher->Release();
     }
 };
 
