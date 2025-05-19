@@ -64,11 +64,11 @@
              if (_powerManagerPlugin) {
                 _powerManagerPlugin.Reset();
              }
+             DeinitializeIARM();
              if(_service != nullptr)
              {
                 _service->Release();
              }
-             DeinitializeIARM();
              HdcpProfileImplementation::_instance = nullptr;
              mShell = nullptr;
          }
