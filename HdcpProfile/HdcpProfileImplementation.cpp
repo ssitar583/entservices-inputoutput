@@ -72,7 +72,6 @@
              mShell = nullptr;
              if(_service != nullptr)
              {
-                _service->Release();
                 _service = nullptr;
              }
              LOGINFO("Call HdcpProfileImplementation destructor-service object destructed\n");
