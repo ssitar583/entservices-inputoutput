@@ -265,7 +265,7 @@
          void HdcpProfileImplementation::Dispatch(Event event,const HDCPStatus& hdcpstatus)
          {
              _adminLock.Lock();
-             LOGINFO("dispatch called"):
+             LOGINFO("dispatch called");
              std::list<Exchange::IHdcpProfile::INotification *>::const_iterator index(_hdcpProfileNotification.begin());
  
              switch (event)
