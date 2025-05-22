@@ -117,7 +117,6 @@ namespace WPEFramework
                 Exchange::IHdmiCecSink::HdmiCecSinkSuccess success;
                 HdmiCecSink::_hdmiCecSink->SetEnabled(false,success);
            }
-           HdmiCecSink::_notification.OnActiveSourceStatusUpdated(false);
 
            if(nullptr != _hdmiCecSink)
            {
