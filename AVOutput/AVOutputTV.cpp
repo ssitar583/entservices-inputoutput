@@ -368,7 +368,7 @@ namespace Plugin {
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
         registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
-        registerMethod("getDolbyVisionCalibrationCaps ", &AVOutputTV::getDolbyVisionCalibrationCaps , this);
+        registerMethod("getDolbyVisionCalibrationCaps", &AVOutputTV::getDolbyVisionCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
@@ -1182,7 +1182,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getDolbyVisionCalibrationCaps (const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getDolbyVisionCalibrationCaps(const JsonObject& parameters, JsonObject& response) {
         tvDVCalibrationSettings_t* min_values = nullptr;
         tvDVCalibrationSettings_t* max_values = nullptr;
         tvContextCaps_t* context_caps = nullptr;
@@ -1710,9 +1710,20 @@ namespace Plugin {
             currentFmt = VIDEO_FORMAT_SDR;
 
         char picMode[PIC_MODE_NAME_MAX] = {0};
-        if (getCurrentPictureMode(picMode)) {
-            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(std::string(picMode)));
-        } else {
+        if (getCurrentPictureMode(picMode))
+        {
+            auto it = pqModeReverseMap.find(picMode);
+            if (it != pqModeReverseMap.end())
+            {
+                currentPQMode = static_cast<tvPQModeIndex_t>(it->second);
+            }
+            else
+            {
+                LOGERR("Unknown picture mode");
+            }
+        }
+        else
+        {
             LOGERR("Failed to get current picture mode");
         }
 
