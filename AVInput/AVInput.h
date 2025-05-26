@@ -83,6 +83,7 @@ private:
     uint32_t getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getVRRFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t startInput(const JsonObject& parameters, JsonObject& response);
     uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
@@ -103,7 +104,7 @@ private:
     bool getVRRSupport(int portId, bool *vrrSupportValue);
     bool setVideoRectangle(int x, int y, int width, int height, int type);
     bool getALLMStatus(int iPort);
-    void getVRRStatus(int iPort, dsVRRType_t *vrrType);
+    bool getVRRStatus(int iPort, dsHdmiInVrrStatus_t *vrrStatus);
 
     void AVInputHotplug(int input , int connect, int type);
     void AVInputVRRChange( int port , dsVRRType_t vrr_type, bool vrr_mode);
