@@ -50,6 +50,7 @@
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
 #define AVINPUT_METHOD_SET_VRR_SUPPORT "setVRRSupport"
 #define AVINPUT_METHOD_GET_VRR_SUPPORT "getVRRSupport"
+#define AVINPUT_METHOD_GET_VRR_FRAME_RATE "getVRRFrameRate"
 #define AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION "getHdmiVersion"
 #define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
@@ -242,6 +243,7 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_VRR_SUPPORT), &AVInput::setVRRSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_VRR_SUPPORT), &AVInput::getVRRSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_VRR_FRAME_RATE), &AVInput::getVRRFrameRateWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION), &AVInput::getHdmiVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
@@ -265,6 +267,7 @@ void AVInput::UnregisterAll()
     Unregister(_T(AVINPUT_METHOD_READ_SPD));
     Unregister(_T(AVINPUT_METHOD_SET_VRR_SUPPORT));
     Unregister(_T(AVINPUT_METHOD_GET_VRR_SUPPORT));
+    Unregister(_T(AVINPUT_METHOD_GET_VRR_FRAME_RATE));
     Unregister(_T(AVINPUT_METHOD_SET_EDID_VERSION));
     Unregister(_T(AVINPUT_METHOD_GET_EDID_VERSION));
     Unregister(_T(AVINPUT_METHOD_START_INPUT));
@@ -1137,9 +1140,9 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-HDMI") == 0)
     {
        bool hdmi_vrr = false;
-       dsVRRType_t vrrType;
-       getVRRStatus(portId, &vrrType);
-       if(vrrType == dsVRR_HDMI_VRR)
+       dsHdmiInVrrStatus_t vrrStatus;
+       getVRRStatus(portId, &vrrStatus);
+       if(vrrStatus.vrrType == dsVRR_HDMI_VRR)
                hdmi_vrr = true;
         LOGWARN("AVInput::getGameFeatureStatusWrapper HDMI VRR MODE:%d", hdmi_vrr);
        response["mode"] = hdmi_vrr;
@@ -1147,9 +1150,9 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC") == 0)
     {
        bool freesync = false;
-       dsVRRType_t vrrType;
-       getVRRStatus(portId, &vrrType);
-       if(vrrType == dsVRR_AMD_FREESYNC)
+       dsHdmiInVrrStatus_t vrrStatus;
+       getVRRStatus(portId, &vrrStatus);
+       if(vrrStatus.vrrType == dsVRR_AMD_FREESYNC)
                freesync = true;
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC MODE:%d", freesync);
        response["mode"] = freesync;
@@ -1157,9 +1160,9 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM") == 0)
     {
        bool freesync_premium = false;
-       dsVRRType_t vrrType;
-       getVRRStatus(portId, &vrrType);
-       if(vrrType == dsVRR_AMD_FREESYNC_PREMIUM)
+       dsHdmiInVrrStatus_t vrrStatus;
+       getVRRStatus(portId, &vrrStatus);
+       if(vrrStatus.vrrType == dsVRR_AMD_FREESYNC_PREMIUM)
                freesync_premium = true;
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC PREMIUM MODE:%d", freesync_premium);
        response["mode"] = freesync_premium;
@@ -1167,9 +1170,9 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else if(strcmp (sGameFeature.c_str(), "VRR-FREESYNC-PREMIUM-PRO") == 0)
     {
        bool freesync_premium_pro = false;
-       dsVRRType_t vrrType;
-       getVRRStatus(portId, &vrrType);
-       if(vrrType == dsVRR_AMD_FREESYNC_PREMIUM_PRO)
+       dsHdmiInVrrStatus_t vrrStatus;
+       getVRRStatus(portId, &vrrStatus);
+       if(vrrStatus.vrrType == dsVRR_AMD_FREESYNC_PREMIUM_PRO)
                freesync_premium_pro = true;
         LOGWARN("AVInput::getGameFeatureStatusWrapper FREESYNC PREMIUM PRO MODE:%d", freesync_premium_pro);
        response["mode"] = freesync_premium_pro;
@@ -1198,19 +1201,20 @@ bool AVInput::getALLMStatus(int iPort)
     return allm;
 }
 
-void AVInput::getVRRStatus(int iPort, dsVRRType_t *vrrType)
+void AVInput::getVRRStatus(int iPort, dsHdmiInVrrStatus_t *vrrStatus)
 {
-
+    bool ret = true;
     try
     {
-       device::HdmiInput::getInstance().getVRRStatus (iPort, vrrType);
-        LOGWARN("AVInput::getVRRStatus VRR TYPE: %d", *vrrType);
+	device::HdmiInput::getInstance().getVRRStatus (iPort, vrrStatus);
+	LOGWARN("AVInput::getVRRStatus VRR TYPE: %d, VRR FRAMERATE: %f", vrrStatus->vrrType,vrrStatus->vrrAmdfreesyncFramerate_Hz);
     }
     catch (const device::Exception& err)
     {
         LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+	ret = false;
     }
-
+    return ret;
 }
 
 uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1504,11 +1508,11 @@ bool AVInput::getVRRSupport(int portId,bool *vrrSupportValue)
 uint32_t AVInput::getVRRSupportWrapper(const JsonObject& parameters, JsonObject& response)
 {
        LOGINFOMETHOD();
+       returnIfParamNotFound(parameters, "portId");
        string sPortId = parameters["portId"].String();
 
        int portId = 0;
        bool vrrSupport = true;
-       returnIfParamNotFound(parameters, "portId");
 
        try {
                portId = stoi(sPortId);
@@ -1572,6 +1576,34 @@ uint32_t AVInput::setVRRSupportWrapper(const JsonObject& parameters, JsonObject&
        else
        {
           returnResponse(false);
+       }
+}
+
+uint32_t AVInput::getVRRFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+{
+       LOGINFOMETHOD();
+       returnIfParamNotFound(parameters, "portId");
+       string sPortId = parameters["portId"].String();
+
+       int portId = 0;
+       dsHdmiInVrrStatus_t vrrStatus;
+
+       try {
+               portId = stoi(sPortId);
+       }catch (const std::exception& err) {
+               LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+               returnResponse(false);
+       }
+
+       bool result = getVRRStatus(portId, &vrrStatus);
+       if(result == true)
+       {
+            response["currentVRRVideoFrameRate"] = vrrStatus.vrrAmdfreesyncFramerate_Hz;
+            returnResponse(true);
+       }
+       else
+       {
+           returnResponse(false);
        }
 }
 
