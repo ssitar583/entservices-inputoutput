@@ -1201,7 +1201,7 @@ bool AVInput::getALLMStatus(int iPort)
     return allm;
 }
 
-void AVInput::getVRRStatus(int iPort, dsHdmiInVrrStatus_t *vrrStatus)
+bool AVInput::getVRRStatus(int iPort, dsHdmiInVrrStatus_t *vrrStatus)
 {
     bool ret = true;
     try
