@@ -615,7 +615,8 @@ namespace WPEFramework
        {
             if(_powerManagerPlugin)
             {
-                _powerManagerPlugin.Reset();
+               _powerManagerPlugin->Unregister(_pwrMgrNotification.baseInterface<Exchange::IPowerManager::IModeChangedNotification>());
+               _powerManagerPlugin.Reset();
             }
             _registeredEventHandlers = false;
         

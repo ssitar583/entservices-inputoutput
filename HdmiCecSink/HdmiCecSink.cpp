@@ -100,13 +100,7 @@ namespace WPEFramework
 
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
        {
-           if(_powerManagerPlugin)
-           {
-               _powerManagerPlugin->Unregister(_pwrMgrNotification.baseInterface<Exchange::IPowerManager::IModeChangedNotification>());
-               _powerManagerPlugin.Reset();
-           }
-           _registeredEventHandlers = false;
-
+           
 		profileType = searchRdkProfile();
 
 		if (profileType == STB || profileType == NOT_FOUND)
@@ -150,6 +144,7 @@ namespace WPEFramework
            }
 
            _connectionId = 0;
+           _service->Unregister(&_notification);
            _service->Release();
            _service = nullptr;
            LOGINFO("HdmiCecSink plugin is deactivated. Successfully deactivated HdmiCecSink Plugin");
