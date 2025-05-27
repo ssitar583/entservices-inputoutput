@@ -197,7 +197,7 @@ namespace WPEFramework {
                                 void ShortAudiodescriptorEvent(const string& jsonresponse) override
                                 {
                                     LOGINFO("ShortAudiodescriptorEvent");
-                                    Exchange::JHdmiCecSink::Event::ShortAudiodescriptorEvent(_parent, &jsonresponse);
+                                    Exchange::JHdmiCecSink::Event::ShortAudiodescriptorEvent(_parent, jsonresponse);
                                 }
 
                                 void StandbyMessageReceived(const int logicalAddress) override
