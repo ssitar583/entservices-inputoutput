@@ -994,14 +994,16 @@ namespace WPEFramework
        {
 
             LOGINFO("Notify the DS ");
+            string shortAudioDescriptors;
+
+            if (!audiodescriptor.ToString(shortAudioDescriptors)) {
+                LOGERR("Failed to  stringify JsonArray");
+            }
             
-
-
-
-            //while (index != _hdmiCecSourceNotifications.end()) {
-            //    (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
-            //    index++;
-            //}
+            while (index != _hdmiCecSourceNotifications.end()) {
+                (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
+                index++;
+            }
        }
 
        void HdmiCecSinkImplementation::Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg)
