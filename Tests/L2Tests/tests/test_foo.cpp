@@ -1,10 +1,11 @@
+#include <gtest/gtest.h>
 #include <iostream>
 
-void foo() {
-    std::cout << "Hello from foo()" << std::endl;
-}
 
-int main() {
-    foo();
-    return 0;
+class PrintTest : public ::testing::Test {
+};
+
+// Single test with print statement
+TEST_F(PrintTest, BasicOutput) {
+    std::cout << "this is a print statement" << std::endl;
 }
