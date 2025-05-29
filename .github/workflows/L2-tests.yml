@@ -17,7 +17,7 @@ env:
 jobs:
   L2-tests:
     name: Build and run L2 tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [ gcc, clang ]
@@ -90,7 +90,7 @@ jobs:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
           ref: feature/RDKEMW-2711-p2
-          #token: ${{ secrets.RDKCM_RDKE }}
+          token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Checkout googletest
         if: steps.cache.outputs.cache-hit != 'true'
