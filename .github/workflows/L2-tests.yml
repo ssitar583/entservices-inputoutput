@@ -17,7 +17,7 @@ env:
 jobs:
   L2-tests:
     name: Build and run L2 tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         compiler: [ gcc, clang ]
@@ -89,8 +89,8 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: develop
-          token: ${{ secrets.RDKCM_RDKE }}
+          ref: feature/RDKEMW-2711-p2
+          #token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Checkout googletest
         if: steps.cache.outputs.cache-hit != 'true'
@@ -302,6 +302,7 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices/proc
           -I $GITHUB_WORKSPACE/install/usr/include
+          -I $GITHUB_WORKSPACE/install/usr/include/WPEFramework
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
@@ -394,6 +395,7 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices/proc
           -I $GITHUB_WORKSPACE/entservices-deviceanddisplay/helpers
           -I $GITHUB_WORKSPACE/install/usr/include
+          -I $GITHUB_WORKSPACE/install/usr/include/WPEFramework
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
