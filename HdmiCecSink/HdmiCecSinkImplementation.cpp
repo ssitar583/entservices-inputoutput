@@ -103,25 +103,12 @@ using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
 
 namespace WPEFramework
 {
-    namespace {
-
-        static Plugin::Metadata<Plugin::HdmiCecSink> metadata(
-            // Version (Major, Minor, Patch)
-            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-            // Preconditions
-            {},
-            // Terminations
-            {},
-            // Controls
-            {}
-        );
-    }
 
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+        SERVICE_REGISTRATION(HdmiCecSinkImplementation, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-        HdmiCecSink* HdmiCecSinkImplementation::_instance = nullptr;
+        HdmiCecSinkImplementation* HdmiCecSinkImplementation::_instance = nullptr;
         static int libcecInitStatus = 0;
 
 //=========================================== HdmiCecSinkFrameListener =========================================
@@ -601,17 +588,17 @@ namespace WPEFramework
              return;
          }
        }
-//=========================================== HdmiCecSink =========================================
+//=========================================== HdmiCecSinkImplementation =========================================
 
-       HdmiCecSinkImplementation::HdmiCecSink()
+       HdmiCecSinkImplementation::HdmiCecSinkImplementation()
        : PluginHost::JSONRPC()
         , _pwrMgrNotification(*this)
         , _registeredEventHandlers(false)
        {
-           LOGWARN("Initlaizing HdmiCecSink");
+           LOGWARN("Initlaizing HdmiCecSinkImplementation");
        }
 
-       HdmiCecSinkImplementation::~HdmiCecSink()
+       HdmiCecSinkImplementation::~HdmiCecSinkImplementation()
        {
             if(_powerManagerPlugin)
             {
@@ -715,7 +702,7 @@ namespace WPEFramework
            m_semSignaltoArcRoutingThread.acquire();
            m_arcRoutingThread = std::thread(threadArcRouting);
 
-           m_audioStatusDetectionTimer.connect( std::bind( &HdmiCecSink::audioStatusTimerFunction, this ) );
+           m_audioStatusDetectionTimer.connect( std::bind( &HdmiCecSinkImplementation::audioStatusTimerFunction, this ) );
 	       m_audioStatusDetectionTimer.setSingleShot(true);
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSinkImplementation::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
@@ -771,7 +758,7 @@ namespace WPEFramework
                }
             }
             getCecVersion();
-            LOGINFO(" HdmiCecSink plugin Initialize completed \n");
+            LOGINFO(" HdmiCecSinkImplementation plugin Initialize completed \n");
             return (std::string());
 
        }
@@ -2940,7 +2927,7 @@ namespace WPEFramework
             {
                 try
                 {
-                    LibCCEC::getInstance().init("HdmiCecSink");
+                    LibCCEC::getInstance().init("HdmiCecSinkImplementation");
                 }
                 catch(InvalidStateException &e){
                     LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
