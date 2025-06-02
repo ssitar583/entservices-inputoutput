@@ -528,9 +528,6 @@ private:
         public:
             HdmiCecSinkImplementation();
             virtual ~HdmiCecSinkImplementation();
-            virtual const string Initialize(PluginHost::IShell* shell) override;
-            virtual void Deinitialize(PluginHost::IShell* service) override;
-            virtual string Information() const override { return {}; }
             static HdmiCecSinkImplementation* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -591,16 +588,16 @@ private:
             private:
                 PowerManagerNotification(const PowerManagerNotification&) = delete;
                 PowerManagerNotification& operator=(const PowerManagerNotification&) = delete;
-
+            
             public:
                 explicit PowerManagerNotification(HdmiCecSinkImplementation& parent)
                     : _parent(parent)
                 {
                 }
                 ~PowerManagerNotification() override = default;
-
+            
             public:
-                void OnPowerModeChanged(const PowerState &currentState, const PowerState &newState) override
+                void OnPowerModeChanged(const PowerState currentState, const PowerState newState) override
                 {
                     _parent.onPowerModeChanged(currentState, newState);
                 }
@@ -611,13 +608,14 @@ private:
                     static_assert(std::is_base_of<T, PowerManagerNotification>(), "base type mismatch");
                     return static_cast<T*>(this);
                 }
-            
+
                 BEGIN_INTERFACE_MAP(PowerManagerNotification)
                 INTERFACE_ENTRY(Exchange::IPowerManager::IModeChangedNotification)
                 END_INTERFACE_MAP
 
             private:
                 HdmiCecSinkImplementation& _parent;
+        
             };
             // We do not allow this plugin to be copied !!
             HdmiCecSinkImplementation(const HdmiCecSinkImplementation&) = delete;
@@ -736,10 +734,10 @@ private:
         Core::hresult SendStandbyMessage(HdmiCecSinkSuccess &success) override;
         Core::hresult SetActivePath(const string &activePath, HdmiCecSinkSuccess &success) override;
         Core::hresult SetActiveSource(HdmiCecSinkSuccess &success) override;
-        Core::hresult SetEnabled(const bool enabled, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetEnabled(const bool &enabled, HdmiCecSinkSuccess &success) override;
         Core::hresult SetOSDName(const string &name, HdmiCecSinkSuccess &success) override;
         Core::hresult SetRoutingChange(const string &oldPort, const string &newPort, HdmiCecSinkSuccess &success) override;
-        Core::hresult SetupARCRouting(const bool enabled, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetupARCRouting(const bool &enabled, HdmiCecSinkSuccess &success) override;
         Core::hresult SetVendorId(const string &vendorId, HdmiCecSinkSuccess &success) override;
         Core::hresult SetLatencyInfo(const string &videoLatency, const string &lowLatencyMode, const string &audioOutputCompensated, const string &audioOutputDelay, HdmiCecSinkSuccess &success) override;
 		Core::hresult Configure(PluginHost::IShell* service) override;

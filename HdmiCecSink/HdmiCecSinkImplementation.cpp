@@ -95,6 +95,11 @@ static AllDeviceTypes allDevicetype = ALL_DEVICE_TYPES;
 static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
 static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
+enum {
+	DEVICE_POWER_STATE_ON = 0,
+	DEVICE_POWER_STATE_OFF = 1
+};
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
 #define API_VERSION_NUMBER_PATCH 7
@@ -591,8 +596,7 @@ namespace WPEFramework
 //=========================================== HdmiCecSinkImplementation =========================================
 
        HdmiCecSinkImplementation::HdmiCecSinkImplementation()
-       : PluginHost::JSONRPC()
-        , _pwrMgrNotification(*this)
+       : _pwrMgrNotification(*this)
         , _registeredEventHandlers(false)
        {
            LOGWARN("Initlaizing HdmiCecSinkImplementation");
@@ -783,7 +787,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        uint32_t HdmiCecSourceImplementation::Unregister(Exchange::IHdmiCecSink::INotification* notification)
+        uint32_t HdmiCecSinkImplementation::Unregister(Exchange::IHdmiCecSink::INotification* notification)
         {
             LOGINFO("Unregister");
             if(notification != nullptr){
