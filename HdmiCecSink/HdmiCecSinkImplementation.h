@@ -746,6 +746,7 @@ private:
 
     private: 
         std::list<Exchange::IHdmiCecSink::INotification*> _hdmiCecSinkNotifications;
+		mutable Core::CriticalSection _adminLock;
         };
 	} // namespace Plugin
 } // namespace WPEFramework
