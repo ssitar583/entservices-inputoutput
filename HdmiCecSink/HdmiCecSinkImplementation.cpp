@@ -665,14 +665,8 @@ namespace WPEFramework
 
        Core::hresult HdmiCecSinkImplementation::Configure(PluginHost::IShell *service)
        {
-            InitializePowerManager(service);
+           InitializePowerManager(service);
            profileType = searchRdkProfile();
-
-           if (profileType == STB || profileType == NOT_FOUND)
-           {
-               LOGINFO("Invalid profile type for TV \n");
-               return (std::string("Not supported"));
-           }
 
            HdmiCecSinkImplementation::_instance = this;
            smConnection=NULL;
@@ -764,7 +758,7 @@ namespace WPEFramework
             }
             getCecVersion();
             LOGINFO(" HdmiCecSinkImplementation plugin Initialize completed \n");
-            return (std::string());
+            return Core::ERROR_NONE;
 
        }
 
@@ -850,7 +844,9 @@ namespace WPEFramework
        void HdmiCecSinkImplementation::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if (IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG == eventId)
             {
@@ -865,7 +861,9 @@ namespace WPEFramework
        void HdmiCecSinkImplementation::onPowerModeChanged(const PowerState &currentState, const PowerState &newState)
        {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                     currentState, newState);
@@ -910,7 +908,9 @@ namespace WPEFramework
       void HdmiCecSinkImplementation::sendStandbyMessage()
       {
               if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
           if(!(HdmiCecSinkImplementation::_instance->smConnection))
               return;
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
@@ -1095,19 +1095,21 @@ namespace WPEFramework
          void HdmiCecSinkImplementation::Process_ReportAudioStatus_msg(const ReportAudioStatus msg)
          {
             if(!HdmiCecSinkImplementation::_instance)
+            {
                return;
-               if (m_audioStatusTimerStarted)
-               {
-                   m_audioStatusReceived = true;
-                   m_isAudioStatusInfoUpdated = true;
-                   m_audioStatusTimerStarted = false;
-                   if (m_audioStatusDetectionTimer.isActive())
-                   {
-                       LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
-                       m_audioStatusDetectionTimer.stop();
-                   }
-                   LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
-               }
+            }
+            if (m_audioStatusTimerStarted)
+            {
+                m_audioStatusReceived = true;
+                m_isAudioStatusInfoUpdated = true;
+                m_audioStatusTimerStarted = false;
+                if (m_audioStatusDetectionTimer.isActive())
+                {
+                    LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
+                    m_audioStatusDetectionTimer.stop();
+                }
+                LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+            }
             LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
@@ -1292,21 +1294,29 @@ namespace WPEFramework
              } 
 
             if(!HdmiCecSinkImplementation::_instance)
-             return;
+            {
+               return;
+            }
             if(!(_instance->smConnection))
+            {
                 return;
-             LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1000);
+            }
+            LOGINFO(" Send systemAudioModeRequest ");
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1000);
 
         }
          void HdmiCecSinkImplementation::sendGiveAudioStatusMsg()
         {
             if(!HdmiCecSinkImplementation::_instance)
-             return;
+            {
+               return;
+            }
             if(!(_instance->smConnection))
+            {
                 return;
-             LOGINFO(" Send GiveAudioStatus ");
-          _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
+            }
+            LOGINFO(" Send GiveAudioStatus ");
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
         }
         void  HdmiCecSinkImplementation::reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus)
@@ -1338,7 +1348,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::SendStandbyMsgEvent(const int logicalAddress)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
             std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->StandbyMessageReceived(logicalAddress);
@@ -1846,7 +1858,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::updateImageViewOn(const int logicalAddress)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ||
                     logicalAddress == LogicalAddress::UNREGISTERED ){
@@ -1875,7 +1889,9 @@ namespace WPEFramework
         {
             JsonObject params;
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ||
                     logicalAddress == LogicalAddress::UNREGISTERED ){
@@ -1904,7 +1920,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::updateDeviceChain(const LogicalAddress &logicalAddress, const PhysicalAddress &phy_addr)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
                 LOGERR("Logical Address NOT Allocated");
@@ -1927,7 +1945,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::getActiveRoute(const LogicalAddress &logicalAddress, std::vector<uint8_t> &route)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ||
                     logicalAddress.toInt() == LogicalAddress::UNREGISTERED ){
@@ -1990,10 +2010,14 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::requestActiveSource()
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
-                        if(!(_instance->smConnection))
-                            return;
+            if(!(_instance->smConnection))
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
                 return;
@@ -2006,10 +2030,14 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::setActiveSource(bool isResponse)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
                 return;
@@ -2029,7 +2057,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::setCurrentLanguage(const Language &lang)
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
@@ -2043,10 +2073,14 @@ namespace WPEFramework
         {
             Language lang = "";
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
                 return;
@@ -2061,7 +2095,9 @@ namespace WPEFramework
         {
             JsonObject params;
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
@@ -2088,7 +2124,9 @@ namespace WPEFramework
            {
                JsonObject params;
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
@@ -2135,10 +2173,14 @@ namespace WPEFramework
                         }
 
                 if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                 LOGERR("Logical Address NOT Allocated");
                 return;
@@ -2161,7 +2203,9 @@ namespace WPEFramework
                                 return;
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
                         if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
                                 LOGERR("Logical Address NOT Allocated");
                                 return;
@@ -2199,7 +2243,9 @@ namespace WPEFramework
             int i;
 
         if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
                 if(!(_instance->smConnection))
                     return;
 
@@ -2264,7 +2310,9 @@ namespace WPEFramework
             int i;
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             for(i=0; i< 16; i++)
             {
@@ -2279,10 +2327,14 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::setStreamPath( const PhysicalAddress &physical_addr) {
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
                 LOGERR("Logical Address NOT Allocated Or its not valid");
                 return;
@@ -2298,7 +2350,9 @@ namespace WPEFramework
             int newPortID = -1;
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
                 LOGERR("Logical Address NOT Allocated Or its not valid");
@@ -2346,7 +2400,9 @@ namespace WPEFramework
             }
 
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RoutingChange(oldPhyAddr, newPhyAddr)), 500);
         }
 
@@ -2354,7 +2410,9 @@ namespace WPEFramework
             JsonObject params;
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
                 LOGERR("Logical Address NOT Allocated");
@@ -2390,7 +2448,9 @@ namespace WPEFramework
             JsonObject params;
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
                 LOGERR("Logical Address NOT Allocated");
@@ -2442,9 +2502,13 @@ namespace WPEFramework
             int requestType;
 
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
                         if(!(_instance->smConnection))
-                            return;
+            {
+                return;
+            }
             if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED + TEST_ADD ){
                 LOGERR("Logical Address NOT Allocated Or its not valid");
                 return;
@@ -3175,7 +3239,9 @@ namespace WPEFramework
           return;
             }
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
         if(m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_TERMINATION || m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED)
             {
                LOGINFO("ARC is either Termination  in progress or already Terminated");
@@ -3270,7 +3336,9 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::threadSendKeyEvent()
         {
             if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
         SendKeyInfo keyInfo = {-1,-1};
 
@@ -3364,7 +3432,9 @@ namespace WPEFramework
         uint32_t currentArcRoutingState;
 
         if(!HdmiCecSinkImplementation::_instance)
-                return;
+            {
+               return;
+            }
 
         LOGINFO("Running threadArcRouting");
         _instance->getHdmiArcPortID();
