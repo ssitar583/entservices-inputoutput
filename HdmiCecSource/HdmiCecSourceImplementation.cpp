@@ -135,7 +135,7 @@ namespace WPEFramework
              LOGINFO("Command: TextViewOn\n");
              HdmiCecSourceImplementation::_instance->addDevice(header.from.toInt());
        }
-       void HdmiCecSourceProcessor::process (const RequestActiveSource &msg, const Header &header)
+       void HdmiCecSourceProcessor::process (const RequestActiveSourceMessage &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: RequestActiveSource\n");
@@ -1031,7 +1031,7 @@ namespace WPEFramework
                 LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
                 smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()));
                 LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
-                smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(RequestActiveSource()));
+                smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(RequestActiveSourceMessage()));
                 isDeviceActiveSource = false;
                 LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
                                                  (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());

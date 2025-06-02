@@ -177,7 +177,7 @@ namespace WPEFramework
              HdmiCecSinkImplementation::_instance->addDevice(header.from.toInt());
              HdmiCecSinkImplementation::_instance->updateTextViewOn(header.from.toInt());
        }
-       void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
+       void HdmiCecSinkProcessor::process (const RequestActiveSourceMessage &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: RequestActiveSource\n");
@@ -2025,7 +2025,7 @@ namespace WPEFramework
 
 
             _instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-                                        MessageEncoder().encode(RequestActiveSource()), 500);
+                                        MessageEncoder().encode(RequestActiveSourceMessage()), 500);
         }
 
         void HdmiCecSinkImplementation::setActiveSource(bool isResponse)
@@ -2188,7 +2188,7 @@ namespace WPEFramework
             }
 
                         LOGINFO(" Send requestShortAudioDescriptor Message ");
-                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1000);
+                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptorMessage(formatid,audioFormatCode,numberofdescriptor)), 1000);
 
         }
 
