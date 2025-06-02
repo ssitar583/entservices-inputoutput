@@ -718,30 +718,33 @@ private:
 
 
     public:
-        uint32_t GetActiveRoute(bool &available, uint8_t &length, IHdmiCecSinkActivePathIterator*& pathList, string &ActiveRoute bool &success) override;
-        uint32_t GetActiveSource(bool &available, uint8_t &logicalAddress, string &physicalAddress, string &deviceType, string &cecVersion, string &osdName, string &vendorID, string &powerStatus, string &port, bool &success) override;
-        uint32_t GetAudioDeviceConnectedStatus(bool &connected, bool &success) override;
-        uint32_t GetDeviceList(uint32_t &numberofdevices, IHdmiCecSinkDeviceListIterator*& deviceList, bool &success) override;
-        uint32_t GetEnabled(bool &enabled, bool &success) override;
-        uint32_t GetOSDName(string &name, bool &success) override;
-        uint32_t GetVendorId(string &vendorid, bool &success) override;
-        uint32_t PrintDeviceList(bool &printed, bool &success) override;
-        uint32_t RequestActiveSource(HdmiCecSinkSuccess &success) override;
-        uint32_t RequestShortAudioDescriptor(HdmiCecSinkSuccess &success) override;
-        uint32_t SendAudioDevicePowerOnMessage(HdmiCecSinkSuccess &success) override;
-        uint32_t SendGetAudioStatusMessage(HdmiCecSinkSuccess &success) override;
-        uint32_t SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
-        uint32_t SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
-        uint32_t SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success) override;
-        uint32_t SendStandbyMessage(HdmiCecSinkSuccess &success) override;
-        uint32_t SetActivePath(const string &activePath, HdmiCecSinkSuccess &success) override;
-        uint32_t SetActiveSource(HdmiCecSinkSuccess &success) override;
-        uint32_t SetEnabled(const bool enabled, HdmiCecSinkSuccess &success) override;
-        uint32_t SetOSDName(const string &name, HdmiCecSinkSuccess &success) override;
-        uint32_t SetRoutingChange(const string &oldPort, const string &newPort, HdmiCecSinkSuccess &success) override;
-        uint32_t SetupARCRouting(const bool enabled, HdmiCecSinkSuccess &success) override;
-        uint32_t SetVendorId(const string &vendorId, HdmiCecSinkSuccess &success) override;
-        uint32_t SetLatencyInfo(const string &videoLatency, const string &lowLatencyMode, const string &audioOutputCompensated, const string &audioOutputDelay, HdmiCecSinkSuccess &success) override;
+        Core::hresult GetActiveRoute(bool &available, uint8_t &length, IHdmiCecSinkActivePathIterator*& pathList, string &ActiveRoute bool &success) override;
+        Core::hresult GetActiveSource(bool &available, uint8_t &logicalAddress, string &physicalAddress, string &deviceType, string &cecVersion, string &osdName, string &vendorID, string &powerStatus, string &port, bool &success) override;
+        Core::hresult GetAudioDeviceConnectedStatus(bool &connected, bool &success) override;
+        Core::hresult GetDeviceList(uint32_t &numberofdevices, IHdmiCecSinkDeviceListIterator*& deviceList, bool &success) override;
+        Core::hresult GetEnabled(bool &enabled, bool &success) override;
+        Core::hresult GetOSDName(string &name, bool &success) override;
+        Core::hresult GetVendorId(string &vendorid, bool &success) override;
+        Core::hresult PrintDeviceList(bool &printed, bool &success) override;
+        Core::hresult RequestActiveSource(HdmiCecSinkSuccess &success) override;
+        Core::hresult RequestShortAudioDescriptor(HdmiCecSinkSuccess &success) override;
+        Core::hresult SendAudioDevicePowerOnMessage(HdmiCecSinkSuccess &success) override;
+        Core::hresult SendGetAudioStatusMessage(HdmiCecSinkSuccess &success) override;
+        Core::hresult SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
+        Core::hresult SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
+        Core::hresult SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success) override;
+        Core::hresult SendStandbyMessage(HdmiCecSinkSuccess &success) override;
+        Core::hresult SetActivePath(const string &activePath, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetActiveSource(HdmiCecSinkSuccess &success) override;
+        Core::hresult SetEnabled(const bool enabled, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetOSDName(const string &name, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetRoutingChange(const string &oldPort, const string &newPort, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetupARCRouting(const bool enabled, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetVendorId(const string &vendorId, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetLatencyInfo(const string &videoLatency, const string &lowLatencyMode, const string &audioOutputCompensated, const string &audioOutputDelay, HdmiCecSinkSuccess &success) override;
+		Core::hresult Configure(PluginHost::IShell* service) override;
+        Core::hresult Register(Exchange::IHdmiCecSink::INotification *notification) override;
+        Core::hresult Unregister(Exchange::IHdmiCecSink::INotification *notification) override;
 
     private: 
         std::list<Exchange::IHdmiCecSink::INotification*> _hdmiCecSinkNotifications;
