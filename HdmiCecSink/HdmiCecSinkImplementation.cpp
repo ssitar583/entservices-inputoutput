@@ -3023,7 +3023,7 @@ namespace WPEFramework
             libcecInitStatus++;
 
             //Acquire CEC Addresses
-            getPhysicalAddress();
+            _instance->getPhysicalAddress();
 
             smConnection = new Connection(LogicalAddress::UNREGISTERED,false,"ServiceManager::Connection::");
             smConnection->open();
