@@ -41,6 +41,7 @@
 #include "UtilsLogging.h"
 #include <interfaces/IPowerManager.h>
 #include "PowerManagerInterface.h"
+#include "<interfaces/IHdmiCecSink.h>"
 
 using namespace WPEFramework;
 using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
@@ -576,7 +577,6 @@ private:
 			void sendGiveAudioStatusMsg();
             void onPowerModeChanged(const PowerState &currentState, const PowerState &newState);
             void registerEventHandlers();
-            void sendGiveAudioStatusMsg();
             void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
@@ -714,7 +714,6 @@ private:
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
             void audioStatusTimerFunction();
-            void getHdmiArcPortID();
 	    void getCecVersion();
 
 
