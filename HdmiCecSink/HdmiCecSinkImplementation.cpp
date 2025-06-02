@@ -79,8 +79,8 @@
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
 enum {
-	DEVICE_POWER_STATE_ON = 0,
-	DEVICE_POWER_STATE_OFF = 1
+    DEVICE_POWER_STATE_ON = 0,
+    DEVICE_POWER_STATE_OFF = 1
 };
 
 static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
@@ -677,8 +677,8 @@ namespace WPEFramework
            m_isHdmiInConnected = false;
            hdmiCecAudioDeviceConnected = false;
            m_isAudioStatusInfoUpdated = false;
-		   m_audioStatusReceived = false;
-		   m_audioStatusTimerStarted = false;
+           m_audioStatusReceived = false;
+           m_audioStatusTimerStarted = false;
            m_audioDevicePowerStatusRequested = false;
            m_pollNextState = POLL_THREAD_STATE_NONE;
            m_pollThreadState = POLL_THREAD_STATE_NONE;
@@ -702,7 +702,7 @@ namespace WPEFramework
            m_arcRoutingThread = std::thread(threadArcRouting);
 
            m_audioStatusDetectionTimer.connect( std::bind( &HdmiCecSinkImplementation::audioStatusTimerFunction, this ) );
-	       m_audioStatusDetectionTimer.setSingleShot(true);
+           m_audioStatusDetectionTimer.setSingleShot(true);
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSinkImplementation::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
 
@@ -2476,12 +2476,12 @@ namespace WPEFramework
 
                     hdmiCecAudioDeviceConnected = false;
                     if (m_audioStatusDetectionTimer.isActive()){
-						m_audioStatusDetectionTimer.stop();
-					}
-					m_isAudioStatusInfoUpdated = false;
-					m_audioStatusReceived = false;
-					m_audioStatusTimerStarted = false;
-					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+                        m_audioStatusDetectionTimer.stop();
+                    }
+                    m_isAudioStatusInfoUpdated = false;
+                    m_audioStatusReceived = false;
+                    m_audioStatusTimerStarted = false;
+                    LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
                     std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                     while (index != _hdmiCecSinkNotifications.end()) {
                         (*index)->ReportAudioDeviceConnectedStatus("success", "false");
@@ -2739,41 +2739,41 @@ namespace WPEFramework
                     {
                         try{
                             
-						    logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
-						    LibCCEC::getInstance().addLogicalAddress(logicalAddress);
-						    _instance->smConnection->setSource(logicalAddress);
-						    _instance->m_numberOfDevices = 0;
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
-                            			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
-						    if(cecVersion == 2.0) {
-						        _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
-						        _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+                            logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
+                            LibCCEC::getInstance().addLogicalAddress(logicalAddress);
+                            _instance->smConnection->setSource(logicalAddress);
+                            _instance->m_numberOfDevices = 0;
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
+                                        _instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+                            _instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
+                            if(cecVersion == 2.0) {
+                                _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
+                                _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
                                                                     MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
-						    }
-						    _instance->smConnection->addFrameListener(_instance->msgFrameListener);
-						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
-						    		MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
+                            }
+                            _instance->smConnection->addFrameListener(_instance->msgFrameListener);
+                            _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
+                                    MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
-						    _instance->m_sleepTime = 0;
-						    _instance->m_pollThreadState = POLL_THREAD_STATE_PING;
+                            _instance->m_sleepTime = 0;
+                            _instance->m_pollThreadState = POLL_THREAD_STATE_PING;
                         }
                         catch(InvalidStateException &e){
                             LOGWARN("InvalidStateException caught while allocated logical address. %s", e.what());
-						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                            _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
                         catch(IOException &e){
                             LOGWARN("IOException caught while allocated logical address. %s", e.what());
-						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                            _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
                         catch(...){
                             LOGWARN("Exception caught while allocated logical address.");
-						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                            _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
                     }
                     else
@@ -3116,12 +3116,12 @@ namespace WPEFramework
             m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
             if (m_audioStatusDetectionTimer.isActive()){
-		    	    m_audioStatusDetectionTimer.stop();
-	        }
-	        m_isAudioStatusInfoUpdated = false;
-	        m_audioStatusReceived = false;
-	        m_audioStatusTimerStarted = false;
-	        LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+                    m_audioStatusDetectionTimer.stop();
+            }
+            m_isAudioStatusInfoUpdated = false;
+            m_audioStatusReceived = false;
+            m_audioStatusTimerStarted = false;
+            LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
 
             for(int i=0; i< 16; i++)
             {
@@ -3389,40 +3389,40 @@ namespace WPEFramework
                     {
                         if(keyInfo.keyCode == MUTE)
                     {
-                    	_instance->sendGiveAudioStatusMsg();
+                        _instance->sendGiveAudioStatusMsg();
                     }
                     else
                     {
-                    	LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
-                    	if (!_instance->m_isAudioStatusInfoUpdated)
-                    	{
-                    		if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
-                    		{
-                    			LOGINFO("Audio status info not updated. Starting the Timer!");
-                    			_instance->m_audioStatusTimerStarted = true;
-                    			_instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
-                    		}
-                    		LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", _instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
-                    	}
-                    	else
-                    	{
-                    		if (!_instance->m_audioStatusReceived){
-                    			_instance->sendGiveAudioStatusMsg();
-                    		}
-                    	}
+                        LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+                        if (!_instance->m_isAudioStatusInfoUpdated)
+                        {
+                            if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
+                            {
+                                LOGINFO("Audio status info not updated. Starting the Timer!");
+                                _instance->m_audioStatusTimerStarted = true;
+                                _instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
+                            }
+                            LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", _instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+                        }
+                        else
+                        {
+                            if (!_instance->m_audioStatusReceived){
+                                _instance->sendGiveAudioStatusMsg();
+                            }
+                        }
                     }
                 }
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
         void HdmiCecSinkImplementation::audioStatusTimerFunction()
-	    {
-	    	m_audioStatusTimerStarted = false;
-	    	m_isAudioStatusInfoUpdated = true;
-	    	LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
-	    	sendGiveAudioStatusMsg();
-	    	LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
-	    }
+        {
+            m_audioStatusTimerStarted = false;
+            m_isAudioStatusInfoUpdated = true;
+            LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
+            sendGiveAudioStatusMsg();
+            LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+        }
 
 
         void HdmiCecSinkImplementation::threadArcRouting()
