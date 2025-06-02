@@ -794,7 +794,6 @@ namespace WPEFramework
             if(notification != nullptr){
                 _adminLock.Lock();
                 std::list<Exchange::IHdmiCecSink::INotification*>::iterator index = std::find(_hdmiCecSinkNotifications.begin(), _hdmiCecSinkNotifications.end(), notification);
-                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 if(index != _hdmiCecSinkNotifications.end())
                 {
                     (*index)->Release();
@@ -1349,8 +1348,6 @@ namespace WPEFramework
        }
        Core::hresult HdmiCecSinkImplementation::SetEnabled(const bool &enabled, HdmiCecSinkSuccess &success)
        {
-            LOGINFOMETHOD();
-            getBoolParameter("enabled", enabled);
 
             setEnabled(enabled);
             success.success = true;
@@ -1417,7 +1414,6 @@ namespace WPEFramework
 
        Core::hresult HdmiCecSinkImplementation::GetDeviceList(uint32_t &numberofdevices, IHdmiCecSinkDeviceListIterator*& deviceList, bool &success)
        {
-            LOGINFOMETHOD();
 
             numberofdevices = HdmiCecSinkImplementation::_instance->m_numberOfDevices;
             LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSinkImplementation::_instance->m_numberOfDevices);
@@ -1462,7 +1458,6 @@ namespace WPEFramework
 
        Core::hresult HdmiCecSinkImplementation::SetOSDName(const string &name, HdmiCecSinkSuccess &success)
        {
-            LOGINFOMETHOD();
 
             LOGINFO("SetOSDName osdName: %s",name.c_str());
             osdName = name.c_str();
@@ -1608,7 +1603,6 @@ namespace WPEFramework
 
         Core::hresult HdmiCecSinkImplementation::SetVendorId(const string &vendorId, HdmiCecSinkSuccess &success)
         {
-            LOGINFOMETHOD();
 
             unsigned int vendorID = 0x00;
             try
