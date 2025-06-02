@@ -1501,9 +1501,10 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        Core::hresult HdmiCecSinkImplementation::SetActivePath(const string activePath, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SetActivePath(const string &activePath, HdmiCecSinkSuccess &success)
         {
-            PhysicalAddress phy_addr = PhysicalAddress(activePath);
+            string activePathStr = activePath;
+            PhysicalAddress phy_addr = PhysicalAddress(activePathStr);
             LOGINFO("Addr = %s, length = %zu", activePathStr.c_str(), activePathStr.length());
             setStreamPath(phy_addr);
             success.success = true;
@@ -1666,11 +1667,12 @@ namespace WPEFramework
             success.success = true;
             return Core::ERROR_NONE;
         }
-        Core::hresult HdmiCecSinkImplementation::SendKeyPressEvent(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
         {
             SendKeyInfo keyInfo;
-            keyInfo.logicalAddr = stoi(logicalAddress);
-            keyInfo.keyCode     = stoi(keyCode);
+
+            keyInfo.logicalAddr = logicalAddress;
+            keyInfo.keyCode     = keyCode;
             keyInfo.UserControl = "sendKeyPressEvent";
             std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
             m_SendKeyQueue.push(keyInfo);
@@ -1681,12 +1683,12 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        Core::hresult HdmiCecSinkImplementation::SendUserControlPressed(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
         {
 
             SendKeyInfo keyInfo;
-            keyInfo.logicalAddr = stoi(logicalAddress);
-            keyInfo.keyCode     = stoi(keyCode);
+            keyInfo.logicalAddr = logicalAddress;
+            keyInfo.keyCode     = keyCode;
             keyInfo.UserControl = "sendUserControlPressed";
             std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
             m_SendKeyQueue.push(keyInfo);
@@ -1700,7 +1702,7 @@ namespace WPEFramework
         Core::hresult HdmiCecSinkImplementation::SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success)
         {
 
-            keyInfo.logicalAddr = stoi(logicalAddress);
+            keyInfo.logicalAddr = logicalAddress;
             keyInfo.keyCode     = 0;
             keyInfo.UserControl = "sendUserControlReleased";
             std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
