@@ -68,7 +68,7 @@ namespace WPEFramework {
 	        void process (const InActiveSource &msg, const Header &header);
 	        void process (const ImageViewOn &msg, const Header &header);
 	        void process (const TextViewOn &msg, const Header &header);
-	        void process (const RequestActiveSource &msg, const Header &header);
+	        void process (const RequestActiveSourceMessage &msg, const Header &header);
 	        void process (const Standby &msg, const Header &header);
 	        void process (const GetCECVersion &msg, const Header &header);
 	        void process (const CECVersion &msg, const Header &header);
