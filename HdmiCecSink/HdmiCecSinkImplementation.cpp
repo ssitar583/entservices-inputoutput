@@ -1426,7 +1426,7 @@ namespace WPEFramework
        {
 
             numberofdevices = HdmiCecSinkImplementation::_instance->m_numberOfDevices;
-            LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSinkImplementation::_instance->m_numberOfDevices);
+            LOGINFO("getDeviceList  m_numberOfDevices :%d \n", HdmiCecSinkImplementation::_instance->m_numberOfDevices);
             std::vector<Exchange::IHdmiCecSink::HdmiCecSinkDevices> localDevices;
             Exchange::IHdmiCecSink::HdmiCecSinkDevices actual_hdmicecdevices = {0};
 
@@ -1445,10 +1445,10 @@ namespace WPEFramework
                     actual_hdmicecdevices.vendorID = HdmiCecSinkImplementation::_instance->deviceList[n].m_vendorID.toString().c_str();
                     actual_hdmicecdevices.powerStatus = HdmiCecSinkImplementation::_instance->deviceList[n].m_powerStatus.toString().c_str();
                     int hdmiPortNumber = -1;
-                    LOGINFO("getDeviceListWrapper  m_numofHdmiInput:%d looking for Logical Address :%d \n", m_numofHdmiInput, HdmiCecSinkImplementation::_instance->deviceList[n].m_logicalAddress.toInt());
+                    LOGINFO("getDeviceList  m_numofHdmiInput:%d looking for Logical Address :%d \n", m_numofHdmiInput, HdmiCecSinkImplementation::_instance->deviceList[n].m_logicalAddress.toInt());
                     for (int i=0; i < m_numofHdmiInput; i++)
                     {
-                         LOGINFO("getDeviceListWrapper  connected : %d, portid:%d LA: %d  \n", hdmiInputs[i].m_isConnected, hdmiInputs[i].m_portID, hdmiInputs[i].m_logicalAddr.toInt());
+                         LOGINFO("getDeviceList  connected : %d, portid:%d LA: %d  \n", hdmiInputs[i].m_isConnected, hdmiInputs[i].m_portID, hdmiInputs[i].m_logicalAddr.toInt());
                          if(hdmiInputs[i].m_isConnected  && hdmiInputs[i].m_logicalAddr.toInt() == HdmiCecSinkImplementation::_instance->deviceList[n].m_logicalAddress.toInt())
                          {
                              hdmiPortNumber = hdmiInputs[i].m_portID;
@@ -1501,11 +1501,10 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        Core::hresult HdmiCecSinkImplementation::SetActivePath(const string &activePath, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SetActivePath(const string activePath, HdmiCecSinkSuccess &success)
         {
-
             PhysicalAddress phy_addr = PhysicalAddress(activePath);
-            LOGINFO("Addr = %s, length = %zu", activePath.c_str(), activePath.length());
+            LOGINFO("Addr = %s, length = %zu", activePathStr.c_str(), activePathStr.length());
             setStreamPath(phy_addr);
             success.success = true;
             return Core::ERROR_NONE;
@@ -1604,20 +1603,6 @@ namespace WPEFramework
        }
 
 
-       Core::hresult HdmiCecSinkImplementation::setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response)
-       {
-            std::string lang;
-
-            returnIfParamNotFound(parameters, "language");
-
-            lang = parameters["language"].String();
-
-            setCurrentLanguage(Language(lang.data()));
-            sendMenuLanguage();
-            return Core::ERROR_NONE;
-       }
-
-
         Core::hresult HdmiCecSinkImplementation::SetVendorId(const string &vendorId, HdmiCecSinkSuccess &success)
         {
 
@@ -1628,7 +1613,7 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception in setVendorIdWrapper set default value\n");
+                LOGWARN("Exception in setVendorId set default value\n");
                 vendorID = 0x0019FB;
             }
             appVendorId = {(uint8_t)(vendorID >> 16 & 0xff),(uint8_t)(vendorID>> 8 & 0xff),(uint8_t) (vendorID & 0xff)};
@@ -1681,7 +1666,7 @@ namespace WPEFramework
             success.success = true;
             return Core::ERROR_NONE;
         }
-        Core::hresult HdmiCecSinkImplementation::SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SendKeyPressEvent(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success)
         {
             SendKeyInfo keyInfo;
             keyInfo.logicalAddr = stoi(logicalAddress);
@@ -1696,7 +1681,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        Core::hresult HdmiCecSinkImplementation::SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SendUserControlPressed(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success)
         {
 
             SendKeyInfo keyInfo;

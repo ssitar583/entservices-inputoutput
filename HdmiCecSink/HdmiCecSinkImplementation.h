@@ -727,11 +727,11 @@ private:
         Core::hresult RequestShortAudioDescriptor(HdmiCecSinkSuccess &success) override;
         Core::hresult SendAudioDevicePowerOnMessage(HdmiCecSinkSuccess &success) override;
         Core::hresult SendGetAudioStatusMessage(HdmiCecSinkSuccess &success) override;
-        Core::hresult SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
-        Core::hresult SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success) override;
+        Core::hresult SendKeyPressEvent(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success) override;
+        Core::hresult SendUserControlPressed(const uint32_t logicalAddress, const uint32_t keyCode, HdmiCecSinkSuccess &success) override;
         Core::hresult SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success) override;
         Core::hresult SendStandbyMessage(HdmiCecSinkSuccess &success) override;
-        Core::hresult SetActivePath(const string &activePath, HdmiCecSinkSuccess &success) override;
+        Core::hresult SetActivePath(const string activePath, HdmiCecSinkSuccess &success) override;
         Core::hresult SetActiveSource(HdmiCecSinkSuccess &success) override;
         Core::hresult SetEnabled(const bool &enabled, HdmiCecSinkSuccess &success) override;
         Core::hresult SetOSDName(const string &name, HdmiCecSinkSuccess &success) override;
