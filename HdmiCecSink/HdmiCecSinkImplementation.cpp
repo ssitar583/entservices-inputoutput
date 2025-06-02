@@ -3061,7 +3061,7 @@ namespace WPEFramework
         void HdmiCecSinkImplementation::CECDisable(void)
         {
             std::lock_guard<std::mutex> lock(m_enableMutex);
-        JsonObject params;
+            JsonObject params;
             LOGINFO("Entered CECDisable ");
             if(!cecEnableStatus)
             {
@@ -3072,63 +3072,63 @@ namespace WPEFramework
             if(m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)
             {
                 stopArc();
-          while(m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)    
-              {
+                while(m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)    
+                {
                      usleep(500000);
-               }
+                }
             }
 
-             LOGINFO(" CECDisable ARC stopped ");
-           cecEnableStatus = false;
+            LOGINFO(" CECDisable ARC stopped ");
+            cecEnableStatus = false;
             if (smConnection != NULL)
             {
-        LOGWARN("Stop Thread %p", smConnection );
-        m_pollThreadExit = true;
-        m_ThreadExitCV.notify_one();
+                LOGWARN("Stop Thread %p", smConnection );
+                m_pollThreadExit = true;
+                m_ThreadExitCV.notify_one();
 
-        try
-        {
-            if (m_pollThread.joinable())
-            {
-                LOGWARN("Join Thread %p", smConnection );
-                m_pollThread.join();
-            }
-        }
-        catch(const std::system_error& e)
-        {
-            LOGERR("system_error exception in thread join %s", e.what());
-        }
-        catch(const std::exception& e)
-        {
-            LOGERR("exception in thread join %s", e.what());
-        }
+                try
+                {
+                    if (m_pollThread.joinable())
+                    {
+                        LOGWARN("Join Thread %p", smConnection );
+                        m_pollThread.join();
+                    }
+                }
+                catch(const std::system_error& e)
+                {
+                    LOGERR("system_error exception in thread join %s", e.what());
+                }
+                catch(const std::exception& e)
+                {
+                    LOGERR("exception in thread join %s", e.what());
+                }
 
                 m_pollThreadState = POLL_THREAD_STATE_NONE;
                 m_pollNextState = POLL_THREAD_STATE_NONE;
 
-        LOGWARN("Deleted Thread %p", smConnection );
+                LOGWARN("Deleted Thread %p", smConnection );
 
                 smConnection->close();
                 delete smConnection;
                 smConnection = NULL;
             }
 
-        m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
-        m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-        if (m_audioStatusDetectionTimer.isActive()){
-			    m_audioStatusDetectionTimer.stop();
-	    }
-	    m_isAudioStatusInfoUpdated = false;
-	    m_audioStatusReceived = false;
-	    m_audioStatusTimerStarted = false;
-	    LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+            m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
+            m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+            if (m_audioStatusDetectionTimer.isActive()){
+		    	    m_audioStatusDetectionTimer.stop();
+	        }
+	        m_isAudioStatusInfoUpdated = false;
+	        m_audioStatusReceived = false;
+	        m_audioStatusTimerStarted = false;
+	        LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
 
-        for(int i=0; i< 16; i++)
+            for(int i=0; i< 16; i++)
             {
-         if (_instance->deviceList[i].m_isDevicePresent)
-             {
-             _instance->deviceList[i].clear();
-             }
+                if (_instance->deviceList[i].m_isDevicePresent)
+                {
+                _instance->deviceList[i].clear();
+                }
             }
 
             if(1 == libcecInitStatus)
@@ -3145,18 +3145,18 @@ namespace WPEFramework
                 }
                 catch(...){
                     LOGWARN("Exception caught in LibCCEC::term");
+                }
+
+                libcecInitStatus--;
+                LOGWARN("CEC Disabled %d",libcecInitStatus); 
+
+                params["cecEnable"] = string("false");
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
+                while (index != _hdmiCecSinkNotifications.end()) {
+                    (*index)->ReportCecEnabledEvent("false");
+                    index++;
+                }
             }
-
-            libcecInitStatus--;
-            LOGWARN("CEC Disabled %d",libcecInitStatus); 
-
-       params["cecEnable"] = string("false");
-       std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
-           while (index != _hdmiCecSinkNotifications.end()) {
-            (*index)->ReportCecEnabledEvent("false");
-            index++;
-        }
-
             return;
         }
 
