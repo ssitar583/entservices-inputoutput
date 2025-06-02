@@ -997,7 +997,7 @@ namespace WPEFramework
             }
             std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
-                (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
+                (*index)->ShortAudiodescriptorEvent(shortAudioDescriptors);
                 index++;
             }
        }
@@ -1347,7 +1347,7 @@ namespace WPEFramework
             }
             
        }
-       Core::hresult HdmiCecSinkImplementation::SetEnabled(const bool enabled, HdmiCecSinkSuccess &success)
+       Core::hresult HdmiCecSinkImplementation::SetEnabled(const bool &enabled, HdmiCecSinkSuccess &success)
        {
             LOGINFOMETHOD();
             getBoolParameter("enabled", enabled);
@@ -1421,8 +1421,8 @@ namespace WPEFramework
 
             numberofdevices = HdmiCecSinkImplementation::_instance->m_numberOfDevices;
             LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSinkImplementation::_instance->m_numberOfDevices);
-            std::vector<Exchange::IHdmiCecSource::HdmiCecSinkDevices> localDevices;
-            Exchange::IHdmiCecSource::HdmiCecSinkDevices actual_hdmicecdevices = {0};
+            std::vector<Exchange::IHdmiCecSink::HdmiCecSinkDevices> localDevices;
+            Exchange::IHdmiCecSink::HdmiCecSinkDevices actual_hdmicecdevices = {0};
 
             for (int n = 0; n <= LogicalAddress::UNREGISTERED; n++)
             {
@@ -1626,7 +1626,7 @@ namespace WPEFramework
 
             success.success = true;
         }
-        Core::hresult HdmiCecSinkImplementation::SetupARCRouting(const bool enabled, HdmiCecSinkSuccess &success)
+        Core::hresult HdmiCecSinkImplementation::SetupARCRouting(const bool &enabled, HdmiCecSinkSuccess &success)
        {
             if(enabled)
             {

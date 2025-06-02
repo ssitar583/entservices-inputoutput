@@ -579,8 +579,7 @@ private:
 			bool m_audioDevicePowerStatusRequested;
 
             BEGIN_INTERFACE_MAP(HdmiCecSinkImplementation)
-            INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IDispatcher)
+                INTERFACE_ENTRY(Exchange::IHdmiCecSink)
             END_INTERFACE_MAP
 
         private:
