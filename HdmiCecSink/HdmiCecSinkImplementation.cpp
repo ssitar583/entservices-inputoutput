@@ -1701,7 +1701,7 @@ namespace WPEFramework
 
         Core::hresult HdmiCecSinkImplementation::SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success)
         {
-
+            SendKeyInfo keyInfo;
             keyInfo.logicalAddr = logicalAddress;
             keyInfo.keyCode     = 0;
             keyInfo.UserControl = "sendUserControlReleased";
@@ -1880,7 +1880,7 @@ namespace WPEFramework
             }
             std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
-                (*index)->OnInActiveSource(logicalAddress);
+                (*index)->OnInActiveSource(logicalAddress, _instance->deviceList[logicalAddress].m_physicalAddr.toString());
                 index++;
             }
         }
@@ -2022,9 +2022,11 @@ namespace WPEFramework
                 LOGERR("Logical Address NOT Allocated");
                 return;
             }
+            HdmiCecSinkSuccess success;
+            success.success = true;
 
             _instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-                                        MessageEncoder().encode(RequestActiveSource()), 500);
+                                        MessageEncoder().encode(RequestActiveSource(success)), 500);
         }
 
         void HdmiCecSinkImplementation::setActiveSource(bool isResponse)
@@ -2114,7 +2116,7 @@ namespace WPEFramework
                 }
                 std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
-                    (*index)->OnInActiveSource(logicalAddress, source.physicalAddress.toString());
+                    (*index)->OnInActiveSource(logical_address, source.physicalAddress.toString());
                     index++;
                 }
             }
@@ -2150,7 +2152,7 @@ namespace WPEFramework
                      /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
                      std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                      while (index != _hdmiCecSinkNotifications.end()) {
-                        (*index)->OnWakeupFromStandby(logicalAddress);
+                        (*index)->OnWakeupFromStandby(logical_address);
                         index++;
                     }
                 }
@@ -2158,7 +2160,7 @@ namespace WPEFramework
                 string physicalAddress = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
                 std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
-                    (*index)->OnActiveSourceChange(logicalAddress, physicalAddress);
+                    (*index)->OnActiveSourceChange(logical_address, physicalAddress);
                     index++;
                 }
             }
