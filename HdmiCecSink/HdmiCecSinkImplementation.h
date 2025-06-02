@@ -41,7 +41,7 @@
 #include "UtilsLogging.h"
 #include <interfaces/IPowerManager.h>
 #include "PowerManagerInterface.h"
-#include "<interfaces/IHdmiCecSink.h>"
+#include <interfaces/IHdmiCecSink.h>
 
 using namespace WPEFramework;
 using PowerState = WPEFramework::Exchange::IPowerManager::PowerState;
