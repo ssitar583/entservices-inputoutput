@@ -1380,15 +1380,9 @@ namespace WPEFramework
             return Core::ERROR_NONE;
        }
 
-       Core::hresult HdmiCecSinkImplementation::requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response)
-       {
-            requestAudioDevicePowerStatus();
-            return Core::ERROR_NONE;
-       }
-
       Core::hresult HdmiCecSinkImplementation::GetActiveSource(bool &available, uint8_t &logicalAddress, string &physicalAddress, string &deviceType, string &cecVersion, string &osdName, string &vendorID, string &powerStatus, string &port, bool &success)
        {
-               char routeString[1024] = {'\0'};
+            char routeString[1024] = {'\0'};
             int length = 0;
             std::stringstream temp;
 
@@ -1467,7 +1461,7 @@ namespace WPEFramework
                 }
             }
 
-            deviceList = new HdmiCecSinkDeviceListIterator(localDevices);
+            deviceList = (Core::Service<RPC::IteratorType<Exchange::IHdmiCecSink::IHdmiCecSinkDeviceListIterator>>::Create<Exchange::IHdmiCecSink::IHdmiCecSinkDeviceListIterator>(localDevices));
             success = true;
             return Core::ERROR_NONE;
        }
@@ -1510,9 +1504,8 @@ namespace WPEFramework
         Core::hresult HdmiCecSinkImplementation::SetActivePath(const string &activePath, HdmiCecSinkSuccess &success)
         {
 
-            std::string id = activePath.String();
-            PhysicalAddress phy_addr = PhysicalAddress(id);
-            LOGINFO("Addr = %s, length = %zu", id.c_str(), id.length());
+            PhysicalAddress phy_addr = PhysicalAddress(activePath);
+            LOGINFO("Addr = %s, length = %zu", activePath.c_str(), activePath.length());
             setStreamPath(phy_addr);
             success.success = true;
             return Core::ERROR_NONE;
@@ -1522,7 +1515,6 @@ namespace WPEFramework
         {
               std::vector<uint8_t> route;    
             char routeString[1024] = {'\0'};
-            int length = 0;
             std::vector<Exchange::IHdmiCecSink::HdmiCecSinkActivePath> paths;
             std::stringstream temp;
 
@@ -1563,7 +1555,7 @@ namespace WPEFramework
                         }
                     }
 
-                    pathList = new HdmiCecSinkActivePathIterator(paths);
+                    pathList = (Core::Service<RPC::IteratorType<Exchange::IHdmiCecSink::IHdmiCecSinkActivePathIterator>>::Create<Exchange::IHdmiCecSink::IHdmiCecSinkActivePathIterator>(paths));
                     temp << (char *)routeString;
                     ActiveRoute = temp.str(); 
                     LOGINFO("ActiveRoute = [%s]", routeString);
@@ -1691,8 +1683,6 @@ namespace WPEFramework
         }
         Core::hresult HdmiCecSinkImplementation::SendKeyPressEvent(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
         {
-            string logicalAddress = logicalAddress.String();
-            string keyCode = keyCode.String();
             SendKeyInfo keyInfo;
             keyInfo.logicalAddr = stoi(logicalAddress);
             keyInfo.keyCode     = stoi(keyCode);
@@ -1708,8 +1698,7 @@ namespace WPEFramework
 
         Core::hresult HdmiCecSinkImplementation::SendUserControlPressed(const uint32_t &logicalAddress, const uint32_t &keyCode, HdmiCecSinkSuccess &success)
         {
-            string logicalAddress = logicalAddress.String();
-            string keyCode = keyCode.String();
+
             SendKeyInfo keyInfo;
             keyInfo.logicalAddr = stoi(logicalAddress);
             keyInfo.keyCode     = stoi(keyCode);
@@ -1725,8 +1714,7 @@ namespace WPEFramework
 
         Core::hresult HdmiCecSinkImplementation::SendUserControlReleased(const uint32_t &logicalAddress, HdmiCecSinkSuccess &success)
         {
-            string logicalAddress = logicalAddress.String();
-            SendKeyInfo keyInfo;
+
             keyInfo.logicalAddr = stoi(logicalAddress);
             keyInfo.keyCode     = 0;
             keyInfo.UserControl = "sendUserControlReleased";
