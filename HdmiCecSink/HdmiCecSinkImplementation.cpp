@@ -2025,7 +2025,7 @@ namespace WPEFramework
 
 
             _instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-                                        MessageEncoder().encode(RequestActiveSource::RequestActiveSource()), 500);
+                                        MessageEncoder().encode(RequestActiveSource()), 500);
         }
 
         void HdmiCecSinkImplementation::setActiveSource(bool isResponse)
@@ -2188,7 +2188,7 @@ namespace WPEFramework
             }
 
                         LOGINFO(" Send requestShortAudioDescriptor Message ");
-                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor::RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1000);
+                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1000);
 
         }
 
