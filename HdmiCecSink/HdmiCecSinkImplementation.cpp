@@ -794,6 +794,7 @@ namespace WPEFramework
             if(notification != nullptr){
                 _adminLock.Lock();
                 std::list<Exchange::IHdmiCecSink::INotification*>::iterator index = std::find(_hdmiCecSinkNotifications.begin(), _hdmiCecSinkNotifications.end(), notification);
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 if(index != _hdmiCecSinkNotifications.end())
                 {
                     (*index)->Release();
@@ -965,6 +966,7 @@ namespace WPEFramework
             LOGINFO("arcStartStopTimerFunction ARC start timer expired");
             LOGINFO("notify_device setting that Initiate ARC failed to get the ARC_STATE_ARC_INITIATED state\n");
             params["status"] = string("failure");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ArcInitiationEvent("failure");
                 index++;
@@ -974,6 +976,7 @@ namespace WPEFramework
         {
             LOGINFO("arcStartStopTimerFunction ARC stop timer expired");
             LOGINFO("notify_device setting that Terminate  ARC failed to get the ARC_STATE_ARC_TERMINATED state\n");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ArcTerminationEvent("failure");
                 index++;
@@ -992,7 +995,7 @@ namespace WPEFramework
             if (!audiodescriptor.ToString(shortAudioDescriptors)) {
                 LOGERR("Failed to  stringify JsonArray");
             }
-            
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ShortAudioDescriptorEvent(shortAudioDescriptors);
                 index++;
@@ -1073,6 +1076,7 @@ namespace WPEFramework
             LOGINFO("panel power state is %s", powerState ? "Off" : "On");
             if (powerState == DEVICE_POWER_STATE_ON ) {
                 LOGINFO("Notifying system audio mode ON event");
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->SetSystemAudioModeEvent(msg.status.toString());
                     index++;
@@ -1082,6 +1086,7 @@ namespace WPEFramework
         }
         } else {
             LOGINFO("Notifying system audio Mode OFF event");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->SetSystemAudioModeEvent(msg.status.toString());
                 index++;
@@ -1105,6 +1110,7 @@ namespace WPEFramework
                    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
                }
             LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ReportAudioStatusEvent(msg.status.getAudioMuteStatus(), msg.status.getAudioVolume());
                 index++;
@@ -1272,6 +1278,7 @@ namespace WPEFramework
          void  HdmiCecSinkImplementation::sendDeviceUpdateInfo(const int logicalAddress)
          {
             LOGINFO("Send Device Update Info \n");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->OnDeviceInfoUpdated(logicalAddress);
                 index++;
@@ -1311,6 +1318,7 @@ namespace WPEFramework
             if (powerStatus != AUDIO_DEVICE_POWERSTATE_OFF) {
                 if (powerState == DEVICE_POWER_STATE_ON ) {
                         LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                        std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                         while (index != _hdmiCecSinkNotifications.end()) {
                             (*index)->ReportAudioDevicePowerStatus(powerStatus);
                             index++;
@@ -1320,6 +1328,7 @@ namespace WPEFramework
             }
             } else {
                 LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->ReportAudioDevicePowerStatus(powerStatus);
                     index++;
@@ -1331,7 +1340,7 @@ namespace WPEFramework
         {
             if(!HdmiCecSinkImplementation::_instance)
                 return;
-
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->StandbyMessageReceived(logicalAddress);
                 index++;
@@ -1855,12 +1864,13 @@ namespace WPEFramework
                     _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
             {
                 /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->OnWakeupFromStandby(logicalAddress);
                     index++;
                 }
             }
-
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->OnInActiveSource(logicalAddress);
                 index++;
@@ -1883,12 +1893,13 @@ namespace WPEFramework
                     _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
             {
                     /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
+                    std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                     while (index != _hdmiCecSinkNotifications.end()) {
                         (*index)->OnWakeupFromStandby(logicalAddress);
                         index++;
                     }
             }
-
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->OnTextViewOnMsg(logicalAddress);
                 index++;
@@ -2071,7 +2082,7 @@ namespace WPEFramework
                 {
                     _instance->m_currentActiveSource = -1;
                 }
-
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->OnInActiveSource(logicalAddress, source.physicalAddress.toString());
                     index++;
@@ -2105,6 +2116,7 @@ namespace WPEFramework
                                     _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
                 {
                      /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
+                     std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                      while (index != _hdmiCecSinkNotifications.end()) {
                         (*index)->OnWakeupFromStandby(logicalAddress);
                         index++;
@@ -2112,6 +2124,7 @@ namespace WPEFramework
                 }
 
                 string physicalAddress = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->OnActiveSourceChange(logicalAddress, physicalAddress);
                     index++;
@@ -2180,6 +2193,7 @@ namespace WPEFramework
                void HdmiCecSinkImplementation::reportFeatureAbortEvent(const LogicalAddress logicalAddress, const OpCode featureOpcode, const AbortReason abortReason)
                {
                         LOGINFO(" Notifying the UI FeatureAbort from the %s for the opcode %s with the reason %s ",logicalAddress.toString().c_str(),featureOpcode.toString().c_str(),abortReason.toString().c_str());
+                        std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                         while (index != _hdmiCecSinkNotifications.end()) {
                             (*index)->ReportFeatureAbortEvent(logicalAddress.toInt(), featureOpcode.opCode(), abortReason.toInt());
                             index++;
@@ -2364,12 +2378,13 @@ namespace WPEFramework
                 {
                     LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
                     hdmiCecAudioDeviceConnected = true;
+                    std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                     while (index != _hdmiCecSinkNotifications.end()) {
                         (*index)->ReportAudioDeviceConnectedStatus("success", "true");
                         index++;
                     }
                 }
-
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->OnDeviceAdded(logicalAddress);
                     index++;
@@ -2412,6 +2427,7 @@ namespace WPEFramework
 					m_audioStatusReceived = false;
 					m_audioStatusTimerStarted = false;
 					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+                    std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                     while (index != _hdmiCecSinkNotifications.end()) {
                         (*index)->ReportAudioDeviceConnectedStatus("success", "false");
                         index++;
@@ -2420,6 +2436,7 @@ namespace WPEFramework
 
                 _instance->deviceList[logicalAddress].m_isRequestRetry = 0;
                 _instance->deviceList[logicalAddress].clear();
+                std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
                 while (index != _hdmiCecSinkNotifications.end()) {
                     (*index)->OnDeviceRemoved(logicalAddress);
                     index++;
@@ -2973,6 +2990,7 @@ namespace WPEFramework
             cecEnableStatus = true;
 
             params["cecEnable"] = string("true");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ReportCecEnabledEvent("true");
                 index++;
@@ -3074,6 +3092,7 @@ namespace WPEFramework
             LOGWARN("CEC Disabled %d",libcecInitStatus); 
 
        params["cecEnable"] = string("false");
+       std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
            while (index != _hdmiCecSinkNotifications.end()) {
             (*index)->ReportCecEnabledEvent("false");
             index++;
@@ -3222,6 +3241,7 @@ namespace WPEFramework
 
             _instance->m_semSignaltoArcRoutingThread.release();
             LOGINFO("Got : ARC_INITIATED  and notify Device setting");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ArcInitiationEvent("success");
                 index++;
@@ -3246,6 +3266,7 @@ namespace WPEFramework
 
             // trigger callback to Device setting informing to TERMINATE_ARC
             LOGINFO("Got : ARC_TERMINATED  and notify Device setting");
+            std::list<Exchange::IHdmiCecSink::INotification*>::const_iterator index(_hdmiCecSinkNotifications.begin());
             while (index != _hdmiCecSinkNotifications.end()) {
                 (*index)->ArcTerminationEvent("success");
                 index++;
