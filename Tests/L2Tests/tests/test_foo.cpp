@@ -2,10 +2,10 @@
 #include <iostream>
 
 
-class PrintTest : public ::testing::Test {
+class PrintTestIO : public ::testing::Test {
 };
 
 // Single test with print statement
-TEST_F(PrintTest, BasicOutput) {
-    std::cout << "this is a print statement" << std::endl;
+TEST_F(PrintTestIO, BasicOutputIO) {
+    std::cout << "this is a print statement from inputoutput" << std::endl;
 }
