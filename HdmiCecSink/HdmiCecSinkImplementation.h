@@ -483,7 +483,7 @@ private:
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCecSinkImplementation : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class HdmiCecSinkImplementation : public Exchange::IHdmiCecSource {
 
 		enum {
 			POLL_THREAD_STATE_NONE,
@@ -718,7 +718,7 @@ private:
 
 
     public:
-        Core::hresult GetActiveRoute(bool &available, uint8_t &length, IHdmiCecSinkActivePathIterator*& pathList, string &ActiveRoute bool &success) override;
+        Core::hresult GetActiveRoute(bool &available, uint8_t &length, IHdmiCecSinkActivePathIterator*& pathList, string &ActiveRoute, bool &success) override;
         Core::hresult GetActiveSource(bool &available, uint8_t &logicalAddress, string &physicalAddress, string &deviceType, string &cecVersion, string &osdName, string &vendorID, string &powerStatus, string &port, bool &success) override;
         Core::hresult GetAudioDeviceConnectedStatus(bool &connected, bool &success) override;
         Core::hresult GetDeviceList(uint32_t &numberofdevices, IHdmiCecSinkDeviceListIterator*& deviceList, bool &success) override;
