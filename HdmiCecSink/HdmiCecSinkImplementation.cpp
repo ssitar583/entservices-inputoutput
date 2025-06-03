@@ -1603,7 +1603,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
        }
 
-       Core::hresult HdmiCecSink::setMenuLanguage(const string &language, HdmiCecSinkSuccess &success) 
+       Core::hresult HdmiCecSinkImplementation::setMenuLanguage(const string &language, HdmiCecSinkSuccess &success) 
        {
         	std::string lang;
 
