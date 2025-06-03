@@ -2102,7 +2102,7 @@ namespace WPEFramework
 
             lang = _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage;
 
-            _instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(SetMenuLanguage(lang)), 100);
+            _instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(SetMenuLanguageMessage(lang)), 100);
         }
 
         void HdmiCecSinkImplementation::updateInActiveSource(const int logical_address, const InActiveSource &source )
