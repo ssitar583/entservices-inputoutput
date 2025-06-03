@@ -34,7 +34,7 @@
 
 namespace WPEFramework
 {
-	namespace {
+    namespace {
 
         static Plugin::Metadata<Plugin::HdmiCecSink> metadata(
             // Version (Major, Minor, Patch)
@@ -54,13 +54,13 @@ namespace WPEFramework
 
        const std::string HdmiCecSink::Initialize(PluginHost::IShell *service)
        {
-		   profileType = searchRdkProfile();
+           profileType = searchRdkProfile();
 
-		   if (profileType == STB || profileType == NOT_FOUND)
-		   {
-			   LOGINFO("Invalid profile type for TV \n");
-			   return (std::string("Not supported"));
-		   }
+           if (profileType == STB || profileType == NOT_FOUND)
+           {
+               LOGINFO("Invalid profile type for TV \n");
+               return (std::string("Not supported"));
+           }
 
            string msg = "";
 
@@ -101,13 +101,13 @@ namespace WPEFramework
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
        {
            
-		profileType = searchRdkProfile();
+        profileType = searchRdkProfile();
 
-		if (profileType == STB || profileType == NOT_FOUND)
-		{
-			LOGINFO("Invalid profile type for TV \n");
-			return ;
-		}
+        if (profileType == STB || profileType == NOT_FOUND)
+        {
+            LOGINFO("Invalid profile type for TV \n");
+            return ;
+        }
 
          bool enabled = false;
            bool ret = false;
