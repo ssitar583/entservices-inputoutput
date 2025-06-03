@@ -73,7 +73,7 @@ namespace WPEFramework {
             void process (const Standby &msg, const Header &header);
             void process (const GetCECVersion &msg, const Header &header);
             void process (const CECVersion &msg, const Header &header);
-            void process (const SetMenuLanguage &msg, const Header &header);
+            void process (const SetMenuLanguageMessage &msg, const Header &header);
             void process (const GiveOSDName &msg, const Header &header);
             void process (const GivePhysicalAddress &msg, const Header &header);
             void process (const GiveDeviceVendorID &msg, const Header &header);
@@ -741,7 +741,7 @@ private:
         Core::hresult Configure(PluginHost::IShell* service) override;
         Core::hresult Register(Exchange::IHdmiCecSink::INotification *notification) override;
         Core::hresult Unregister(Exchange::IHdmiCecSink::INotification *notification) override;
-        Core::hresult setMenuLanguage(const string &language, HdmiCecSinkSuccess &success)  override;
+        Core::hresult SetMenuLanguage(const string &language, HdmiCecSinkSuccess &success)  override;
 
     private: 
         std::list<Exchange::IHdmiCecSink::INotification*> _hdmiCecSinkNotifications;

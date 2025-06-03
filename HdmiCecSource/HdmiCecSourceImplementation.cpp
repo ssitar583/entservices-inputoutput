@@ -178,7 +178,7 @@ namespace WPEFramework
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
              HdmiCecSourceImplementation::_instance->addDevice(header.from.toInt());
        }
-       void HdmiCecSourceProcessor::process (const SetMenuLanguage &msg, const Header &header)
+       void HdmiCecSourceProcessor::process (const SetMenuLanguageMessage &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: SetMenuLanguage Language : %s \n",msg.language.toString().c_str());

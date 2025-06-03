@@ -72,7 +72,7 @@ namespace WPEFramework {
 	        void process (const Standby &msg, const Header &header);
 	        void process (const GetCECVersion &msg, const Header &header);
 	        void process (const CECVersion &msg, const Header &header);
-	        void process (const SetMenuLanguage &msg, const Header &header);
+	        void process (const SetMenuLanguageMessage &msg, const Header &header);
 	        void process (const GiveOSDName &msg, const Header &header);
 	        void process (const GivePhysicalAddress &msg, const Header &header);
 	        void process (const GiveDeviceVendorID &msg, const Header &header);

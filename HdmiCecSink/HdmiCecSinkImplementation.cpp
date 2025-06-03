@@ -229,7 +229,7 @@ namespace WPEFramework
          if(!updateStatus)
          HdmiCecSinkImplementation::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
-       void HdmiCecSinkProcessor::process (const SetMenuLanguage &msg, const Header &header)
+       void HdmiCecSinkProcessor::process (const SetMenuLanguageMessage &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: SetMenuLanguage Language : %s \n",msg.language.toString().c_str());
@@ -1603,7 +1603,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
        }
 
-       Core::hresult HdmiCecSinkImplementation::setMenuLanguage(const string &language, HdmiCecSinkSuccess &success) 
+       Core::hresult HdmiCecSinkImplementation::SetMenuLanguage(const string &language, HdmiCecSinkSuccess &success) 
        {
         	std::string lang;
 
