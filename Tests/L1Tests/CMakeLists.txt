@@ -128,6 +128,12 @@ add_plugin_test_ex(PLUGIN_AVINPUT tests/test_AVInput.cpp "${AVINPUT_INC}" "${NAM
 
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
 
+set_source_files_properties(
+        tests/test_HdmiCec2.cpp
+        tests/test_HdmiCecSource.cpp
+        tests/test_HdmiCecSink.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 if (RDK_SERVICES_L1_TEST)
    find_library(TESTMOCKLIB_LIBRARIES NAMES L1TestMocklib)
    if (TESTMOCKLIB_LIBRARIES)
