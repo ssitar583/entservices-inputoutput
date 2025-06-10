@@ -68,6 +68,12 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
+#define STR_ALLM "ALLM"
+#define VRR_TYPE_HDMI "VRR-HDMI"
+#define VRR_TYPE_FREESYNC "VRR-FREESYNC"
+#define VRR_TYPE_FREESYNC_PREMIUM "VRR-FREESYNC-PREMIUM"
+#define VRR_TYPE_FREESYNC_PREMIUM_PRO "VRR-FREESYNC-PREMIUM-PRO"
+
 static bool isAudioBalanceSet = false;
 static int planeType = 0;
 
