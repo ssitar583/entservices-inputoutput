@@ -1,7 +1,5 @@
 name: L2-tests
 
-#enable the workflow incase of any plugin/testcase changes
-#Add "Tests/L2Tests" subdirectory in CMakeLists.txt, when enabling L2Tests
 on:
   push:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
@@ -90,7 +88,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: feature/RDKEMW-2711-p2
+          ref: develop
           token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Checkout googletest
