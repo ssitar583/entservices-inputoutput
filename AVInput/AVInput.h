@@ -48,7 +48,7 @@ public:
     int m_primVolume;
     int m_inputVolume; //Player Volume
 
-    static dsVRRType_t m_currentVrrType;
+    dsVRRType_t m_currentVrrType;
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
@@ -83,6 +83,7 @@ private:
     uint32_t getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getVRRSupportWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getVRRFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t startInput(const JsonObject& parameters, JsonObject& response);
     uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
@@ -103,7 +104,7 @@ private:
     bool getVRRSupport(int portId, bool *vrrSupportValue);
     bool setVideoRectangle(int x, int y, int width, int height, int type);
     bool getALLMStatus(int iPort);
-    void getVRRStatus(int iPort, dsVRRType_t *vrrType);
+    void getVRRStatus(int iPort, dsHdmiInVrrStatus_t *vrrType);
 
     void AVInputHotplug(int input , int connect, int type);
     static void dsAVEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
