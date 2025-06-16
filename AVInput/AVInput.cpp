@@ -1616,6 +1616,7 @@ uint32_t AVInput::getVRRFrameRateWrapper(const JsonObject& parameters, JsonObjec
 
        int portId = 0;
        dsHdmiInVrrStatus_t vrrStatus;
+       vrrStatus.vrrAmdfreesyncFramerate_Hz = 0;
 
        try {
                portId = stoi(sPortId);
