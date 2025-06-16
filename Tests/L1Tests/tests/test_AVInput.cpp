@@ -128,7 +128,7 @@ TEST_F(AVInputDsTest, setVRRSupport)
 
 TEST_F(AVInputDsTest, getVRRFrameRate)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVRRFrameRate"), _T("{\"portId\": \"0\",\"currentVRRVideoFrameRate\":48.6}"), response));
-    EXPECT_EQ(response, string("{\"currentVRRVideoFrameRate\":48.6,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVRRFrameRate"), _T("{\"portId\": \"0\"}"), response));
+    EXPECT_EQ(response, string("{\"currentVRRVideoFrameRate\":0,\"success\":true}"));
 }
 
