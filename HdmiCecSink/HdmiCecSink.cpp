@@ -765,7 +765,7 @@ namespace WPEFramework
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
             // get power state:
-            uint32_t res = Core::ERROR_GENERAL;
+            Core::hresult res = Core::ERROR_GENERAL;
             PowerState pwrStateCur = WPEFramework::Exchange::IPowerManager::POWER_STATE_UNKNOWN;
             PowerState pwrStatePrev = WPEFramework::Exchange::IPowerManager::POWER_STATE_UNKNOWN;
 
@@ -824,6 +824,7 @@ namespace WPEFramework
        {
            if(_powerManagerPlugin)
            {
+               _powerManagerPlugin->Unregister(_pwrMgrNotification.baseInterface<Exchange::IPowerManager::IModeChangedNotification>());
                _powerManagerPlugin.Reset();
            }
            _registeredEventHandlers = false;
@@ -2499,7 +2500,7 @@ namespace WPEFramework
 					m_audioStatusReceived = false;
 					m_audioStatusTimerStarted = false;
 					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
-                                        sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
+                                        sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params);
                                 }
 
 				_instance->deviceList[logicalAddress].m_isRequestRetry = 0;

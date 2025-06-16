@@ -25,8 +25,6 @@ import datetime
 import time
 sys.path.append("../TestCases")
 from HdmiCecSource import CecUtils
-from FrontPanel import FPUtils
-from HDCPProfile import HdcpUtils
 from Utilities import Utils, ReportGenerator
 
 sys.path.append("Utilities")
