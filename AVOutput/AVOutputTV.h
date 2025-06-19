@@ -556,6 +556,9 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
 		bool resetPictureModeV2(const JsonObject& parameters);
 		int syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format);
+		std::string getCMSNameFromEnum(tvDataComponentColor_t colorEnum);
+        void syncCMSParamsV2();
+
 
 	public:
 		int m_currentHdmiInResoluton;
@@ -660,6 +663,21 @@ class AVOutputTV : public AVOutputBase {
 		tvDVCalibrationSettings_t* m_maxValues;
 		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
 		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
+
+		int m_maxCmsHue = 0;
+		int m_maxCmsSaturation = 0;
+		int m_maxCmsLuma = 0;
+		size_t m_numColor = 0;
+		size_t m_numComponent = 0;
+		tvDataComponentColor_t* m_cmsColorArr;
+		tvComponentType_t* m_cmsComponentArr;
+		std::vector<std::string> m_cmsColorList;
+		std::vector<std::string> m_cmsComponentList;
+		std::unordered_map<std::string, int> m_cmsIndexMap;
+		tvContextCaps_t* m_cmsCaps = nullptr;
+		tvError_t m_cmsStatus = tvERROR_NONE;
+
+		bool setCMSParam(const JsonObject& parameters);
 
 		std::string convertPictureIndexToStringV2(int pqmode);
 		std::string convertVideoFormatToStringV2(int format);

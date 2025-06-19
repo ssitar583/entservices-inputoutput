@@ -611,6 +611,89 @@ namespace Plugin {
             return false;
         }
     }
+    bool AVOutputTV::setCMSParam(const JsonObject& parameters)
+    {
+        LOGINFO("Entry: setCMSParam");
+
+        std::string colorStr = parameters.HasLabel("color") ? parameters["color"].String() : "";
+        std::string componentStr = parameters.HasLabel("component") ? parameters["component"].String() : "";
+        std::string levelStr = parameters.HasLabel("level") ? parameters["level"].String() : "";
+
+        if (colorStr.empty() || componentStr.empty() || levelStr.empty()) {
+            LOGERR("Missing color/component/level");
+            return false;
+        }
+
+        int level = 0;
+        try {
+            level = std::stoi(levelStr);
+        } catch (...) {
+            LOGERR("Invalid level value: %s", levelStr.c_str());
+            return false;
+        }
+
+        int maxCap = 0;
+        if (componentStr == "Hue")
+            maxCap = m_maxCmsHue;
+        else if (componentStr == "Saturation")
+            maxCap = m_maxCmsSaturation;
+        else if (componentStr == "Luma")
+            maxCap = m_maxCmsLuma;
+        else {
+            LOGERR("Invalid component: %s", componentStr.c_str());
+            return false;
+        }
+
+        if (level < 0 || level > maxCap) {
+            LOGERR("Level out of range: %d (0-%d)", level, maxCap);
+            return false;
+        }
+
+        tvDataComponentColor_t colorEnum;
+        if (getCMSColorEnumFromString(colorStr, colorEnum) != 0) {
+            LOGERR("Invalid color: %s", colorStr.c_str());
+            return false;
+        }
+
+
+        if( isSetRequiredForParam(parameters, "CMS") ) {
+            LOGINFO("Proceed with SetCMSState \n");
+            tvError_t ret = SetCMSState(true);
+            if(ret != tvERROR_NONE) {
+                LOGWARN("CMS enable failed\n");
+                return false;
+            }
+            if (componentStr == "Hue")
+                ret = SetCurrentComponentHue(colorEnum, level);
+            else if (componentStr == "Saturation")
+                ret = SetCurrentComponentSaturation(colorEnum, level);
+            else if (componentStr == "Luma")
+                ret = SetCurrentComponentLuma(colorEnum, level);
+
+            if (ret != tvERROR_NONE) {
+                LOGERR("HAL set failed for %s", componentStr.c_str());
+                return false;
+            }
+        }
+
+        try {
+            int retVal = updateAVoutputTVParamV2("set", "CMS", parameters, PQ_PARAM_CMS, level);
+            if (retVal < 0) {
+                LOGERR("setCMSParam: Failed to save CMS param, return code: %d", retVal);
+                return false;
+            }
+        } catch (const std::exception& e) {
+            LOGERR("Exception in updateAVoutputTVParamV2: %s", e.what());
+            return false;
+        } catch (...) {
+            LOGERR("Unknown exception in updateAVoutputTVParamV2");
+            return false;
+        }
+
+        LOGINFO("Exit: setCMSParam success");
+        return true;
+    }
+
 
     bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
         const std::string& inputKey,
@@ -686,12 +769,13 @@ namespace Plugin {
         if (isSetRequiredForParam(parameters, paramName)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
+	        LOGINFO("halsetter ret %d \n", ret);
             if (ret != tvERROR_NONE){
                 LOGERR("Failed to set %s\n", paramName.c_str());
                 return false;
             }
         }
-
+	    LOGINFO("Calling updateAVOutputTVParamV2 \n");
         int retval = updateAVoutputTVParamV2("set", paramName, parameters, pqType, paramValue);
         if (retval != 0) {
         LOGERR("Failed to Save %s to ssm_data. retval: %d\n", paramName.c_str(), retval);
@@ -4925,239 +5009,318 @@ namespace Plugin {
     uint32_t AVOutputTV::getCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int level = 0;
+            tvPQParameterIndex_t tvPQEnum;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int level = 0;
-        tvPQParameterIndex_t tvPQEnum;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
-        
-        if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-	        LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
+            if( inputInfo.color.empty() || inputInfo.component.empty() ) {
+                LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (isPlatformSupport("CMS") != 0) {
+                returnResponse(false);
+            }
+
+
+            if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (getParamIndex("CMS",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGINFO("%s: Component/Color Param Not Found \n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("CMS",indexInfo,level,tvPQEnum);
+            if( err == 0 ) {
+                response["level"] = level;
+                LOGINFO("Exit : params Value: %d \n", level);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
+        else
+        {
+            // Extract color and component from input parameters
+            std::string color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            std::string component = parameters.HasLabel("component") ? parameters["component"].String() : "";
 
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
+            if (color.empty() || component.empty()) {
+                LOGERR("%s: Missing color/component parameter", __FUNCTION__);
+                returnResponse(false);
+            }
 
+            tvPQParameterIndex_t pqEnum;
+            if (convertCMSParamToPQEnum(component, color, pqEnum) != 0) {
+                LOGERR("%s: Invalid color/component combination", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            // Get valid context from parameters using your existing context helper
+            tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "CMS");
 
-        if (getParamIndex("CMS",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+                validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+                validContext.pq_mode == PQ_MODE_INVALID))
+            {
+                LOGERR("No valid context found for CMS get");
+                returnResponse(false);
+            }
 
-        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGINFO("%s: Component/Color Param Not Found \n",__FUNCTION__);
-            returnResponse(false);
-        }
+            // Prepare paramIndex from context
+            paramIndex_t indexInfo = {
+                .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+                .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+                .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
+            };
 
-        int err = getLocalparam("CMS",indexInfo,level,tvPQEnum);
-        if( err == 0 ) {
-            response["level"] = level;
-            LOGINFO("Exit : params Value: %d \n", level);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+            int level = 0;
+            int err = getLocalparam("CMS", indexInfo, level, pqEnum);
+            if (err == 0) {
+                response["level"] = level;
+                LOGINFO("Exit: getCMS success, value: %d", level);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get CMS param from local storage");
+                returnResponse(false);
+            }
         }
     }
 
     uint32_t AVOutputTV::setCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int level = 0,retVal = 0;
+            tvPQParameterIndex_t tvPQEnum;
+            tvDataComponentColor_t colorEnum=tvDataColor_NONE;
+            std::string color,component;
+            tvError_t ret = tvERROR_NONE;
+            std::string value;
 
-        capDetails_t inputInfo;
-        int level = 0,retVal = 0;
-        tvPQParameterIndex_t tvPQEnum;
-        tvDataComponentColor_t colorEnum=tvDataColor_NONE;
-        std::string color,component;
-        tvError_t ret = tvERROR_NONE;
-        std::string value;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
+            if( inputInfo.color.empty() || inputInfo.component.empty() ) {
+                LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
+            if (isPlatformSupport("CMS") != 0) {
+                returnResponse(false);
+            }
 
-        if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-            LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
-        }
+            value = parameters.HasLabel("level") ? parameters["level"].String() : "";
+            returnIfParamNotFound(parameters,"level");
+            level = std::stoi(value);
 
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
+            if (validateCMSParameter(inputInfo.component,level) != 0) {
+                LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        value = parameters.HasLabel("level") ? parameters["level"].String() : "";
-        returnIfParamNotFound(parameters,"level");
-        level = std::stoi(value);
+            if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (validateCMSParameter(inputInfo.component,level) != 0) {
-            LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "CMS",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "CMS",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
+            if( retVal == -1) {
+                LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
+                returnResponse(false);
+            }
 
-        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
-            returnResponse(false);
-        }    
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                tvError_t ret = SetCMSState(true);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS enable failed\n");
+                    returnResponse(false);
+                }
 
-        retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
-        if( retVal == -1) {
-            LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
-            returnResponse(false);
-        }
+                if(inputInfo.component.compare("Saturation") == 0)
+                    ret = SetCurrentComponentSaturation(colorEnum, level);
+                else if(inputInfo.component.compare("Hue") == 0 )
+                    ret = SetCurrentComponentHue(colorEnum,level);
+                else if( inputInfo.component.compare("Luma") == 0 )
+                    ret = SetCurrentComponentLuma(colorEnum,level);
+            }
 
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-            LOGINFO("Proceed with %s\n",__FUNCTION__);
-            tvError_t ret = SetCMSState(true);
             if(ret != tvERROR_NONE) {
-                LOGWARN("CMS enable failed\n");
+                LOGERR("Failed to set CMS\n");
                 returnResponse(false);
             }
-            
-            if(inputInfo.component.compare("Saturation") == 0)
-                ret = SetCurrentComponentSaturation(colorEnum, level);
-            else if(inputInfo.component.compare("Hue") == 0 )
-                ret = SetCurrentComponentHue(colorEnum,level);
-            else if( inputInfo.component.compare("Luma") == 0 )
-                ret = SetCurrentComponentLuma(colorEnum,level);
-        
-        }      
+            else  {
+                std::string cmsParam;
+                cmsParam = inputInfo.color+"."+inputInfo.component;
 
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set CMS\n");
-            returnResponse(false);
+                retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,level);
+                if(retVal != 0 ) {
+                    LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
+                returnResponse(true);
+            }
         }
-        else  {
-            std::string cmsParam;                   
-            cmsParam = inputInfo.color+"."+inputInfo.component;
-            
-            retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,level);
-            if(retVal != 0 ) {
-                LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
+        else
+        {
+            bool status = setCMSParam(parameters);
+            if (status) {
+                LOGINFO("setCMS success");
+                returnResponse(true);
+            } else {
+                LOGERR("setCMS failed");
                 returnResponse(false);
             }
-            LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
-            returnResponse(true);
         }
     }
 
     uint32_t AVOutputTV::resetCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int retVal = 0;
+            std::string color,component;
+            tvError_t ret = tvERROR_NONE;
+            JsonArray sourceArray;
+            JsonArray pqmodeArray;
+            JsonArray formatArray;
+            JsonArray colorArray;
+            JsonArray componentArray;
 
-        capDetails_t inputInfo;
-        int retVal = 0;
-        std::string color,component;
-        tvError_t ret = tvERROR_NONE;
-        JsonArray sourceArray;
-        JsonArray pqmodeArray;
-        JsonArray formatArray;
-        JsonArray colorArray;
-        JsonArray componentArray;
-
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
-
-        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
-        for (int i = 0; i < pqmodeArray.Length(); ++i) {
-            inputInfo.pqmode += pqmodeArray[i].String();
-            if (i != (pqmodeArray.Length() - 1) ) {
-                inputInfo.pqmode += ",";
-            }
-        }
-
-        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
-        for (int i = 0; i < sourceArray.Length(); ++i) {
-            inputInfo.source += sourceArray[i].String();
-            if (i != (sourceArray.Length() - 1) ) {
-                inputInfo.source += ",";
-	        }
-        }
-
-        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
-        for (int i = 0; i < formatArray.Length(); ++i) {
-            inputInfo.format += formatArray[i].String();
-            if (i != (formatArray.Length() - 1) ) {
-                inputInfo.format += ",";
-            }
-        }
-        colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
-        for (int i = 0; i < colorArray.Length(); ++i) {
-            inputInfo.color += colorArray[i].String();
-            if (i != (colorArray.Length() - 1) ) {
-                inputInfo.color += ",";
-            }
-        }
-        componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
-        for (int i = 0; i < componentArray.Length(); ++i) {
-            inputInfo.component += componentArray[i].String();
-            if (i != (componentArray.Length() - 1) ) {
-                inputInfo.component += ",";
-            }
-        }
-        if (inputInfo.source.empty()) {
-            inputInfo.source = "Global";
-	    }
-        if (inputInfo.pqmode.empty()) {
-            inputInfo.pqmode = "Global";
-	    }
-        if (inputInfo.format.empty()) {
-            inputInfo.format = "Global";
-	    }
-        if (inputInfo.color.empty()) {
-            inputInfo.color = "Global";
-	    }
-        if (inputInfo.component.empty()) {
-            inputInfo.component = "Global";
-	    }
-
-        if (convertToValidInputParameter("CMS", inputInfo) != 0) {
-            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "CMS" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-            LOGINFO("Proceed with %s\n",__FUNCTION__);
-            tvError_t ret = SetCMSState(false);
-            if(ret != tvERROR_NONE) {
-                LOGWARN("CMS disable failed\n");
+            if (isPlatformSupport("CMS") != 0) {
                 returnResponse(false);
-            } 
-        }      
+            }
 
-        if(ret != tvERROR_NONE) {
-            LOGERR("%s : Failed to setCMSState\n",__FUNCTION__);
-            returnResponse(false);
+            pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+            for (int i = 0; i < pqmodeArray.Length(); ++i) {
+                inputInfo.pqmode += pqmodeArray[i].String();
+                if (i != (pqmodeArray.Length() - 1) ) {
+                    inputInfo.pqmode += ",";
+                }
+            }
+
+            sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+            for (int i = 0; i < sourceArray.Length(); ++i) {
+                inputInfo.source += sourceArray[i].String();
+                if (i != (sourceArray.Length() - 1) ) {
+                    inputInfo.source += ",";
+                }
+            }
+
+            formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+            for (int i = 0; i < formatArray.Length(); ++i) {
+                inputInfo.format += formatArray[i].String();
+                if (i != (formatArray.Length() - 1) ) {
+                    inputInfo.format += ",";
+                }
+            }
+            colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
+            for (int i = 0; i < colorArray.Length(); ++i) {
+                inputInfo.color += colorArray[i].String();
+                if (i != (colorArray.Length() - 1) ) {
+                    inputInfo.color += ",";
+                }
+            }
+            componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
+            for (int i = 0; i < componentArray.Length(); ++i) {
+                inputInfo.component += componentArray[i].String();
+                if (i != (componentArray.Length() - 1) ) {
+                    inputInfo.component += ",";
+                }
+            }
+            if (inputInfo.source.empty()) {
+                inputInfo.source = "Global";
+            }
+            if (inputInfo.pqmode.empty()) {
+                inputInfo.pqmode = "Global";
+            }
+            if (inputInfo.format.empty()) {
+                inputInfo.format = "Global";
+            }
+            if (inputInfo.color.empty()) {
+                inputInfo.color = "Global";
+            }
+            if (inputInfo.component.empty()) {
+                inputInfo.component = "Global";
+            }
+
+            if (convertToValidInputParameter("CMS", inputInfo) != 0) {
+                LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "CMS" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                tvError_t ret = SetCMSState(false);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS disable failed\n");
+                    returnResponse(false);
+                }
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("%s : Failed to setCMSState\n",__FUNCTION__);
+                returnResponse(false);
+            }
+            else  {
+                int cms = 0;
+                retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,cms);
+                if(retVal != 0 ) {
+                    LOGERR("%s : Failed to Save CMS %s/%s to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str() );
+                    returnResponse(false);
+                }
+                returnResponse(true);
+            }
         }
-        else  {
+        else
+        {
+            if (isSetRequiredForParam(parameters, "CMS")) {
+                LOGINFO("Proceed with SetCMSState \n");
+                tvError_t ret = SetCMSState(false);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS disable failed\n");
+                    returnResponse(false);
+                }
+            }
             int cms = 0;
-            retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,cms);
+            int retVal= updateAVoutputTVParamV2("reset","CMS",parameters,PQ_PARAM_CMS,cms);
             if(retVal != 0 ) {
-                LOGERR("%s : Failed to Save CMS %s/%s to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str() );
+                LOGERR("%s : Failed to Save CMS to ssm_data\n",__FUNCTION__);
                 returnResponse(false);
             }
             returnResponse(true);
