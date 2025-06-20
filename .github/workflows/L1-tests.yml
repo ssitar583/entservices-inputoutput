@@ -2,14 +2,14 @@ name: L1-tests
 
 on:
   push:
-    branches: [ main, develop, 'sprint/**', 'release/**', 'topic/RDK*' ]
+    branches: [ main, develop, 'sprint/**', 'release/**' ]
   pull_request:
-    branches: [ main, develop, 'sprint/**', 'release/**', 'topic/RDK*' ]
+    branches: [ main, develop, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
   THUNDER_REF: "R4.4.1"
-  INTERFACES_REF: "main"
+  INTERFACES_REF: "develop"
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME}}
   AUTOMATICS_PASSCODE: ${{ secrets. AUTOMATICS_PASSCODE}}
 
@@ -121,10 +121,18 @@ jobs:
         with:
           path: entservices-inputoutput
 
+      - name: Checkout googletest
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: google/googletest
+          path: googletest
+          ref: v1.15.0
+
       - name: Apply patches ThunderTools
         run: |  
           cd $GITHUB_WORKSPACE/ThunderTools
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/00010-R4.4-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/00010-R4.4-Add-support-for-project-dir.patch
           cd -
 
       - name: Build ThunderTools
@@ -145,10 +153,10 @@ jobs:
       - name: Apply patches Thunder
         run: |
           cd $GITHUB_WORKSPACE/Thunder
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L2Tests/patches/error_code_R4_4.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/1004-Add-support-for-project-dir.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/RDKEMW-733-Add-ENTOS-IDS.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/error_code_R4_4.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/1004-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/RDKEMW-733-Add-ENTOS-IDS.patch
           cd -
 
       - name: Build Thunder
@@ -252,7 +260,6 @@ jobs:
           rdk/iarmbus/libIBusDaemon.h
           rdk/halif/deepsleep-manager/deepSleepMgr.h
           rdk/iarmmgrs-hal/mfrMgr.h
-          rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
@@ -343,6 +350,22 @@ jobs:
           &&
           cmake --install build/mocks
 
+      - name: Build googletest
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
+          cmake -G Ninja
+          -S "$GITHUB_WORKSPACE/googletest"
+          -B build/googletest
+          -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
+          -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
+          -DGENERIC_CMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
+          -DBUILD_TYPE=Debug
+          -DBUILD_GMOCK=ON
+          &&
+          cmake --build build/googletest -j8
+          &&
+          cmake --install build/googletest
+
       - name: Build entservices-inputoutput
         run: >
           cmake -G Ninja
@@ -369,6 +392,8 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests
           -I $GITHUB_WORKSPACE/Thunder/Source
           -I $GITHUB_WORKSPACE/Thunder/Source/core
+          -I $GITHUB_WORKSPACE/install/usr/include
+          -I $GITHUB_WORKSPACE/install/usr/include/WPEFramework
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
@@ -407,6 +432,8 @@ jobs:
           -DDS_FOUND=ON
           -DHAS_FRONT_PANEL=ON
           -DRDK_SERVICES_L1_TEST=ON
+          -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_HDMICECSOURCE=ON
           -DPLUGIN_HDMICECSINK=ON
@@ -444,6 +471,8 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests
           -I $GITHUB_WORKSPACE/Thunder/Source
           -I $GITHUB_WORKSPACE/Thunder/Source/core
+          -I $GITHUB_WORKSPACE/install/usr/include
+          -I $GITHUB_WORKSPACE/install/usr/include/WPEFramework
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
@@ -460,7 +489,7 @@ jobs:
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/thunder/Communicator.h
           --coverage
           -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
-          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
+          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,--no-as-needed
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
@@ -481,6 +510,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_CEC=ON
           -DCMAKE_BUILD_TYPE=Debug
           -DDS_FOUND=ON
+          -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_HDMICECSOURCE=ON
           -DPLUGIN_HDMICECSINK=ON
@@ -639,3 +670,4 @@ jobs:
             rdkL1TestResultsWithoutValgrind.json
             rdkL1TestResultsWithValgrind.json
           if-no-files-found: warn
+          
