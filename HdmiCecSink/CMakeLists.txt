@@ -59,11 +59,6 @@ set_source_files_properties(HdmiCecSinkImplementation.cpp PROPERTIES COMPILE_FLA
 target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${CEC_LIBRARIES} ${DS_LIBRARIES} )
 target_link_libraries(${PLUGIN_IMPLEMENTATION} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${CEC_LIBRARIES} ${DS_LIBRARIES} )
 
-target_link_libraries(${PLUGIN_IMPLEMENTATION}
-    PRIVATE
-        CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
-
 if (NOT RDK_SERVICES_L1_TEST)
     target_compile_options(${PLUGIN_IMPLEMENTATION} PRIVATE -Wno-error=deprecated)
 endif ()
