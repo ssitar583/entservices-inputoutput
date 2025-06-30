@@ -558,7 +558,7 @@ jobs:
           &&
           lcov -c
           -o coverage.info
-          -d build/entservices-inputoutput
+          -d build/
           &&
           lcov
           -r coverage.info
