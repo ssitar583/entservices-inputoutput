@@ -18,7 +18,6 @@
 **/
 
 #include <gtest/gtest.h>
-
 #include "AVInput.h"
 
 #include "CompositeInputMock.h"
