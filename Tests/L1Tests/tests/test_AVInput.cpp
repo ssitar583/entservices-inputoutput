@@ -223,21 +223,71 @@ TEST_F(AVInputInit, getInputDevices)
     EXPECT_EQ(response, string("{\"devices\":[{\"id\":0,\"connected\":false,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\"},{\"id\":0,\"connected\":false,\"locator\":\"cvbsin:\\/\\/localhost\\/deviceid\\/0\"}],\"success\":true}"));
 }
 
+TEST_F(AVInputInit, getInputDevices_HDMI)
+{
+    EXPECT_CALL(*p_hdmiInputImplMock, getNumberOfInputs())
+        .WillOnce(::testing::Return(1));
+    EXPECT_CALL(*p_hdmiInputImplMock, isPortConnected(::testing::_))
+        .WillOnce(::testing::Return(true));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInputDevices"), _T("{\"typeOfInput\": \"HDMI\"}"), response));
+    EXPECT_EQ(response, string("{\"devices\":[{\"id\":0,\"connected\":true,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\"}],\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getInputDevices_COMPOSITE)
+{
+    EXPECT_CALL(*p_compositeInputImplMock, getNumberOfInputs())
+        .WillOnce(::testing::Return(1));
+    EXPECT_CALL(*p_compositeInputImplMock, isPortConnected(::testing::_))
+        .WillOnce(::testing::Return(true));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInputDevices"), _T("{\"typeOfInput\": \"COMPOSITE\"}"), response));
+    EXPECT_EQ(response, string("{\"devices\":[{\"id\":0,\"connected\":true,\"locator\":\"cvbsin:\\/\\/localhost\\/deviceid\\/0\"}],\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getInputDevices_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getInputDevices"), _T("{\"typeOfInput\": \"Test\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputInit, writeEDID)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("writeEDID"), _T("{\"portId\": \"1\",\"message\":\"Test\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+TEST_F(AVInputInit, writeEDID_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("writeEDID"), _T("{}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputInit, readEDID)
 {
     EXPECT_CALL(*p_hdmiInputImplMock, getEDIDBytesInfo(::testing::_, ::testing::_))
         .WillOnce([](int port, std::vector<uint8_t>& edid) {
-            edid = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
+            EXPECT_EQ(port,1);
+            edid = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
         });
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("readEDID"), _T("{\"portId\": \"1\"}"), response));
-    EXPECT_EQ(response, string("{\"EDID\":\"AP\\/\\/\\/\\/\\/\\/\\/wA=\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"EDID\":\"AP\\/\\/\\/\\/\\/\\/\\/w==\",\"success\":true}"));
+}
+
+TEST_F(AVInputInit, readEDIDFailure)
+{
+    EXPECT_CALL(*p_hdmiInputImplMock, getEDIDBytesInfo(::testing::_, ::testing::_))
+        .WillOnce([](int port, std::vector<uint8_t>& edid) {
+            edid = {};
+        });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("readEDID"), _T("{\"portId\": \"1\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
+TEST_F(AVInputInit, readEDID_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("readEDID"), _T("{\"portId\": \"test\"}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, getRawSPD)
@@ -251,6 +301,12 @@ TEST_F(AVInputInit, getRawSPD)
     EXPECT_EQ(response, string("{\"HDMISPD\":\"U1BEAA\",\"success\":true}"));
 }
 
+TEST_F(AVInputInit, getRawSPD_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRawSPD"), _T("{\"portId\": \"test\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputInit, getSPD)
 {
     EXPECT_CALL(*p_hdmiInputImplMock, getHDMISPDInfo(::testing::_, ::testing::_))
@@ -260,6 +316,12 @@ TEST_F(AVInputInit, getSPD)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSPD"), _T("{\"portId\": \"1\"}"), response));
     EXPECT_EQ(response, string("{\"HDMISPD\":\"Packet Type:53,Version:80,Length:68,vendor name:wn,product des:,source info:00\",\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getSPD_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSPD"), _T("{\"portId\": \"test\"}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, setEdidVersion)
@@ -274,15 +336,40 @@ TEST_F(AVInputInit, setEdidVersion)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(AVInputInit, getEdidVersion)
+TEST_F(AVInputInit, setEdidVersion_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"test\", \"edidVersion\":\"test\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
+TEST_F(AVInputInit, getEdidVersion1)
 {
     EXPECT_CALL(*p_hdmiInputImplMock, getEdidVersion(::testing::_, ::testing::_))
         .WillOnce([](int port, int* edidVersion) {
-            *edidVersion = 4;
+            EXPECT_EQ(port,0);
+            *edidVersion = 0;
+        });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEdidVersion"), _T("{\"portId\": \"0\"}"), response));
+    EXPECT_EQ(response, string("{\"edidVersion\":\"HDMI1.4\",\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getEdidVersion2)
+{
+    EXPECT_CALL(*p_hdmiInputImplMock, getEdidVersion(::testing::_, ::testing::_))
+        .WillOnce([](int port, int* edidVersion) {
+            EXPECT_EQ(port,1);
+            *edidVersion = 1;
         });
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEdidVersion"), _T("{\"portId\": \"1\"}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(response, string("{\"edidVersion\":\"HDMI2.0\",\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getEdidVersion_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getEdidVersion"), _T("{\"portId\": \"test\"}}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, getHdmiVersion)
@@ -296,6 +383,12 @@ TEST_F(AVInputInit, getHdmiVersion)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHdmiVersion"), _T("{\"portId\": \"1\"}"), response));
     EXPECT_EQ(response, string("{\"HdmiCapabilityVersion\":\"2.1\",\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getHdmiVersion_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getHdmiVersion"), _T("{\"portId\": \"test\"}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, setMixerLevels)
@@ -313,6 +406,12 @@ TEST_F(AVInputInit, setMixerLevels)
         });
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMixerLevels"), _T("{\"primaryVolume\": 50 ,\"inputVolume\":30}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(AVInputInit, setMixerLevelsErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMixerLevels"), _T("{\"primaryVolume\": 110 ,\"inputVolume\":110}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -341,6 +440,12 @@ TEST_F(AVInputInit, startInput_COMPOSITE)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+TEST_F(AVInputInit, startInput_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startInput"), _T("{\"portId\": \"test\" ,\"typeOfInput\":\"HDMI\", \"requestAudioMix\": true, \"plane\" : 1, \"topMost\" : true}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputInit, stopInput_HDMI)
 {
     EXPECT_CALL(*p_hdmiInputImplMock, selectPort(::testing::_, ::testing::_, ::testing::_, ::testing::_))
@@ -361,6 +466,12 @@ TEST_F(AVInputInit, stopInput_COMPOSITE)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopInput"), _T("{\"typeOfInput\":\"COMPOSITE\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(AVInputInit, stopInput_COMPOSITE_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("stopInput"), _T("{\"typeOfInput\":\"DP\"}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, setVideoRectangle_HDMI)
@@ -391,6 +502,12 @@ TEST_F(AVInputInit, setVideoRectangle_COMPOSITE)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+TEST_F(AVInputInit, setVideoRectangle_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\" : 0, \"y\" : 0, \"w\" : 720, \"h\" : 480 ,\"typeOfInput\":\"DP\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputInit, getSupportedGameFeatures)
 {
     EXPECT_CALL(*p_hdmiInputImplMock, getSupportedGameFeatures(::testing::_))
@@ -400,6 +517,17 @@ TEST_F(AVInputInit, getSupportedGameFeatures)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSupportedGameFeatures"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"supportedGameFeatures\":[\"ALLM\",\"VRR\",\"QMS\"],\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getSupportedGameFeatures_ErrorCase)
+{
+    EXPECT_CALL(*p_hdmiInputImplMock, getSupportedGameFeatures(::testing::_))
+        .WillOnce([](std::vector<std::string>& featureList) {
+            featureList = {};
+        });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSupportedGameFeatures"), _T("{}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, getGameFeatureStatus_ALLM)
@@ -464,6 +592,12 @@ TEST_F(AVInputInit, getGameFeatureStatus_VRR_FREESYNC_PREMIUM_PRO)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getGameFeatureStatus"), _T("{\"portId\" : 1, \"gameFeature\" : \"VRR-FREESYNC-PREMIUM-PRO\"}"), response));
     EXPECT_EQ(response, string("{\"mode\":true,\"success\":true}"));
+}
+
+TEST_F(AVInputInit, getGameFeatureStatus_InvalidParameters)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getGameFeatureStatus"), _T("{\"portId\" : \"test\", \"gameFeature\" : \"VRR-FREESYNC-PREMIUM-PRO\"}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputInit, onDevicesChangedHDMI)
@@ -1094,11 +1228,22 @@ TEST_F(AVInputDsTest, getEdid2AllmSupport)
     EXPECT_EQ(response, string("{\"allmSupport\":true,\"success\":true}"));
 }
 
+TEST_F(AVInputDsTest, getEdid2AllmSupport_ErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getEdid2AllmSupport"), _T("{\"portId\": \"test\",\"allmSupport\":true}"), response));
+    EXPECT_EQ(response, string(""));
+}
 
 TEST_F(AVInputDsTest, setEdid2AllmSupport)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEdid2AllmSupport"), _T("{\"portId\": \"0\",\"allmSupport\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(AVInputDsTest, setEdid2AllmSupport_ErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setEdid2AllmSupport"), _T("{\"portId\": \"test\",\"allmSupport\":true}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputDsTest, getVRRSupport)
@@ -1107,10 +1252,22 @@ TEST_F(AVInputDsTest, getVRRSupport)
     EXPECT_EQ(response, string("{\"vrrSupport\":true,\"success\":true}"));
 }
 
+TEST_F(AVInputDsTest, getVRRSupport_ErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getVRRSupport"), _T("{\"portId\": \"test\",\"vrrSupport\":true}"), response));
+    EXPECT_EQ(response, string(""));
+}
+
 TEST_F(AVInputDsTest, setVRRSupport)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVRRSupport"), _T("{\"portId\": \"0\",\"vrrSupport\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(AVInputDsTest, setVRRSupport_ErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setVRRSupport"), _T("{\"portId\": \"test\",\"vrrSupport\":true}"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(AVInputDsTest, getVRRFrameRate)
@@ -1119,3 +1276,8 @@ TEST_F(AVInputDsTest, getVRRFrameRate)
     EXPECT_EQ(response, string("{\"currentVRRVideoFrameRate\":0,\"success\":true}"));
 }
 
+TEST_F(AVInputDsTest, getVRRFrameRate_ErrorCase)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getVRRFrameRate"), _T("{\"portId\": \"test\"}"), response));
+    EXPECT_EQ(response, string(""));
+}
