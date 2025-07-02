@@ -6,25 +6,7 @@ on:
       - main
 
 jobs:
-  get_tag:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.get_tag.outputs.tag }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get latest tag for commit
-        id: get_tag
-        run: |
-          TAG=$(git tag --contains ${{ github.sha }} | head -n 1)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
   call_auto_pr_workflow:
-    needs: get_tag
-    runs-on: ubuntu-latest
     uses: ssitar583/build_tools_workflows/.github/workflows/auto_pr_creation_meta.yml@develop
-    with:
-      tag: ${{ needs.get_tag.outputs.tag }}
     secrets:
       RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
