@@ -36,6 +36,7 @@ namespace Plugin {
     {
     }
 
+
     const std::string AVOutput::Initialize(PluginHost::IShell* service)
     {
         LOGINFO("Entry\n");
