@@ -3,8 +3,7 @@ name: Auto PR Creation Caller
 on:
   push:
     branches:
-      - topic/RDKEMW-4778
-
+      - develop
 jobs:
   debug_check:
     runs-on: ubuntu-latest
