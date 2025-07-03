@@ -3,10 +3,21 @@ name: Auto PR Creation Caller
 on:
   push:
     branches:
-      - main
+      - topic/RDKEMW-4778
 
 jobs:
+  debug_check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Triggered"
+      
   call_auto_pr_workflow:
-    uses: rdkcentral/build_tools_workflows/.github/workflows/auto_pr_creation_manifest.yml@RDKEMW-4778
+    #secrets:
+      #RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
+    uses: rdkcentral/build_tools_workflows/.github/workflows/auto_pr_creation_meta.yml@RDKEMW-4778
     secrets:
       RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
+    #runs-on: ubuntu-latest
+    #steps:
+     # - name: Print placeholder instead of actual logic
+     #   run: echo "This is a placeholder for the actual logic."
