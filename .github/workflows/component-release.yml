@@ -31,21 +31,29 @@ jobs:
           git fetch --all
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
-          git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t ""
-          # Extract the latest version from CHANGELOG.md and increment patch
-          LATEST_VERSION=$(grep -m 1 -oP '^#### \[\K[^\]]+' CHANGELOG.md)
-          if [[ -z "$LATEST_VERSION" ]]; then
-            echo "No version found in CHANGELOG.md!"
-            exit 1
+          git flow init -d -f -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t ""
+          # Try to extract version from PR description
+          PR_DESC="${{ github.event.pull_request.body }}"
+          VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*<\K[0-9]+\.[0-9]+\.[0-9]+(?=>)')
+          if [[ -n "$VERSION_FROM_PR" ]]; then
+            RELEASE_VERSION="$VERSION_FROM_PR"
+            echo "Using version from PR description: $RELEASE_VERSION"
+          else
+            # Extract the latest version from CHANGELOG.md and increment patch
+            LATEST_VERSION=$(grep -m 1 -oP '^#### \[\K[^\]]+' CHANGELOG.md)
+            if [[ -z "$LATEST_VERSION" ]]; then
+              echo "No version found in CHANGELOG.md!"
+              exit 1
+            fi
+            IFS='.' read -r major minor patch <<< "$LATEST_VERSION"
+            if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
+              echo "Invalid version format in CHANGELOG.md: $LATEST_VERSION"
+              exit 1
+            fi
+            NEXT_PATCH=$((patch + 1))
+            RELEASE_VERSION="$major.$minor.$NEXT_PATCH"
+            echo "LATEST_VERSION=$LATEST_VERSION"
           fi
-          IFS='.' read -r major minor patch <<< "$LATEST_VERSION"
-          if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
-            echo "Invalid version format in CHANGELOG.md: $LATEST_VERSION"
-            exit 1
-          fi
-          NEXT_PATCH=$((patch + 1))
-          RELEASE_VERSION="$major.$minor.$NEXT_PATCH"
-          echo "LATEST_VERSION=$LATEST_VERSION"
           echo "RELEASE_VERSION=$RELEASE_VERSION"
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
           # Check if tag already exists
