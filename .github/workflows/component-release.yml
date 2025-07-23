@@ -38,7 +38,7 @@ jobs:
             -r release/ \
             -x hotfix/ \
             -s support/ \
-            -t "v"
+            -t "v" || true
             
           # Try to extract version from PR description
           PR_DESC="${{ github.event.pull_request.body }}"
