@@ -31,8 +31,9 @@ jobs:
           git fetch --all
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
-          git config gitflow.branch.master main
-          git config gitflow.branch.develop develop
+          
+          git config gitflow.branch.master develop
+          git config gitflow.branch.develop topic/
           git config gitflow.prefix.feature feature/
           git config gitflow.prefix.bugfix bugfix/
           git config gitflow.prefix.release release/
