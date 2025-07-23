@@ -32,27 +32,14 @@ jobs:
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
 
-          set +e
-          
-           yes "" | git flow init -f \
-            -p feature/ \
-            -b bugfix/ \
-            -r release/ \
-            -x hotfix/ \
-            -s support/ \
-            -t "v" 2>&1 | tee output.log
-      
-          exit_code=${PIPESTATUS[0]}
-      
-          # Re-enable 'exit on error'
-          set -e
-      
-          if [ "$exit_code" -eq 141 ]; then
-            echo "Non-fatal SIGPIPE from 'yes' – continuing."
-          elif [ "$exit_code" -ne 0 ]; then
-            echo "git flow init failed with exit code $exit_code"
-            exit "$exit_code"
-          fi
+          git config gitflow.branch.master main
+          git config gitflow.branch.develop develop
+          git config gitflow.prefix.feature feature/
+          git config gitflow.prefix.bugfix bugfix/
+          git config gitflow.prefix.release release/
+          git config gitflow.prefix.hotfix hotfix/
+          git config gitflow.prefix.support support/
+          git config gitflow.prefix.versiontag v
 
             
           # Try to extract version from PR description
