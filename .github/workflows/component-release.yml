@@ -18,11 +18,13 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+
       - name: Install git-flow and auto-changelog
         run: |
           sudo apt-get update
           sudo apt-get install -y git-flow
           npm install -g auto-changelog
+
       - name: Clone the project and start release
         run: |
           set -e
@@ -42,22 +44,30 @@ jobs:
           git config gitflow.prefix.versiontag ''
 
           echo "git config completed"
-          #Try to extract version from PR description
+          # Extract version from PR description
           PR_DESC="${{ github.event.pull_request.body }}"
           
-          VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*\K[0-9]+\.[0-9]+\.[0-9]+(?=)' || true)
+          VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oiP 'version\s*:\s*\K[0-9]+\.[0-9]+\.[0-9]+(?=)' || true)
           
           echo "Extracted version from PR: $VERSION_FROM_PR"
-          # PR_DESC="${{ github.event.pull_request.body }}"
-          # VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*<\K[0-9]+\.[0-9]+\.[0-9]+(?=>)')
-          # echo "$VERSION_FROM_PR"
-          if [[ -n "$VERSION_FROM_PR" ]]; then
-            RELEASE_VERSION="$VERSION_FROM_PR"
-            echo "Using version from PR description: $RELEASE_VERSION"
-          else
-            echo "Version not found"
+
+          # Get top tag from CHANGELOG.md
+          TOP_TAG=$(grep -m 1 -oP '^#### \[\K[^\]]+' CHANGELOG.md)
+          if [[ -z "$VERSION_FROM_PR" ]]; then
+            echo "Version not found in PR description"
             exit 1
           fi
+          if [[ -z "$TOP_TAG" ]]; then
+            echo "No version found in CHANGELOG.md!"
+            exit 1
+          fi
+          # Compare PR version and top tag
+          if [[ "$VERSION_FROM_PR" == "$TOP_TAG" || $(printf '%s\n%s' "$VERSION_FROM_PR" "$TOP_TAG" | sort -V | head -n1) != "$TOP_TAG" ]]; then
+            echo "Invalid version provided"
+            exit 1
+          fi
+          RELEASE_VERSION="$VERSION_FROM_PR"
+          echo "Using version from PR description: $RELEASE_VERSION"
           echo "RELEASE_VERSION=$RELEASE_VERSION"
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
           # # Check if tag already exists
