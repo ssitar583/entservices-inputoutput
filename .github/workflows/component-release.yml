@@ -31,6 +31,8 @@ jobs:
           git fetch --all
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
+
+          set +e
           
            yes "" | git flow init -f \
             -p feature/ \
