@@ -32,7 +32,7 @@ jobs:
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
           
-          git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t "v" || {
+          git flow init -f -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t "v" || {
             echo "Git flow init failed with exit code $?"
             exit 1
           }
