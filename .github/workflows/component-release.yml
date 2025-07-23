@@ -39,13 +39,11 @@ jobs:
           git config gitflow.prefix.release release/
           git config gitflow.prefix.hotfix hotfix/
           git config gitflow.prefix.support support/
-          git config gitflow.prefix.versiontag v
+          git config gitflow.prefix.versiontag ''
 
           echo "git config completed"
           #Try to extract version from PR description
           PR_DESC="${{ github.event.pull_request.body }}"
-          echo "$PR_DESC"
-          PR_DESC="${PR_DESC:-}"  # fallback to empty if unset
           
           VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*\K[0-9]+\.[0-9]+\.[0-9]+(?=)' || true)
           
