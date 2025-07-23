@@ -1,9 +1,10 @@
 name: Auto PR Creation Caller
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - develop
+      - main
 jobs:
   debug_check:
     runs-on: ubuntu-latest
