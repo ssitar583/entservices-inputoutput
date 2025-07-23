@@ -32,7 +32,7 @@ jobs:
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
           
-          git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t ""
+          git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t " "
 
           # Try to extract version from PR description
           PR_DESC="${{ github.event.pull_request.body }}"
