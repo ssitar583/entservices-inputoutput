@@ -31,7 +31,8 @@ jobs:
           git fetch --all
           git checkout main || git checkout -b main origin/main
           git checkout develop || git checkout -b develop origin/develop
-          git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t ""
+          #git flow init -f -d -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t ""
+          git flow init -d -f -p feature/ -b bugfix/ -r release/ -x hotfix/ -s support/ -t "" -m main -D develop
           # Try to extract version from PR description
           PR_DESC="${{ github.event.pull_request.body }}"
           VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*<\K[0-9]+\.[0-9]+\.[0-9]+(?=>)')
