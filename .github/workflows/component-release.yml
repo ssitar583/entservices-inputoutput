@@ -49,19 +49,19 @@ jobs:
             RELEASE_VERSION="$VERSION_FROM_PR"
             echo "Using version from PR description: $RELEASE_VERSION"
           else
-            # Extract the latest version from CHANGELOG.md and increment patch
-            LATEST_VERSION=$(grep -m 1 -oP '^#### \[\K[^\]]+' CHANGELOG.md)
-            if [[ -z "$LATEST_VERSION" ]]; then
-              echo "No version found in CHANGELOG.md!"
-              exit 1
-            fi
-            IFS='.' read -r major minor patch <<< "$LATEST_VERSION"
-            if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
-              echo "Invalid version format in CHANGELOG.md: $LATEST_VERSION"
-              exit 1
-            fi
-            NEXT_PATCH=$((patch + 1))
-            RELEASE_VERSION="$major.$minor.$NEXT_PATCH"
+            # # Extract the latest version from CHANGELOG.md and increment patch
+            # LATEST_VERSION=$(grep -m 1 -oP '^#### \[\K[^\]]+' CHANGELOG.md)
+            # if [[ -z "$LATEST_VERSION" ]]; then
+            #   echo "No version found in CHANGELOG.md!"
+            #   exit 1
+            # fi
+            # IFS='.' read -r major minor patch <<< "$LATEST_VERSION"
+            # if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
+            #   echo "Invalid version format in CHANGELOG.md: $LATEST_VERSION"
+            #   exit 1
+            # fi
+            # NEXT_PATCH=$((patch + 1))
+            # RELEASE_VERSION="$major.$minor.$NEXT_PATCH"
             echo "LATEST_VERSION=$LATEST_VERSION"
           fi
           echo "RELEASE_VERSION=$RELEASE_VERSION"
