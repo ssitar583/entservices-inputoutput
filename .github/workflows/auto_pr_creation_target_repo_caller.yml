@@ -14,7 +14,7 @@ jobs:
   call_auto_pr_workflow:
     #secrets:
       #RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
-    uses: .github/workflows/auto_pr_creation_meta.yml@topic/test-4778
+    uses: ssitar583/entservices-inputoutput/.github/workflows/auto_pr_creation_meta.yml@topic/test-4778
     secrets:
       RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
     #runs-on: ubuntu-latest
