@@ -26,6 +26,14 @@ jobs:
           sudo apt-get install -y git-flow
           npm install -g auto-changelog
 
+      - name: Check all linked PRs are merged (if any)
+        run: |
+          python3 .github/check_all_linked_prs_merged.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          
       - name: Clone the project and start release
         run: |
           set -e
